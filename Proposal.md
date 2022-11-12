@@ -1,0 +1,86 @@
+Project Proposal
+================
+2022-11-11
+
+## Group Member:
+
+-   Yucheng Li (yl5215)
+
+-   Yunyi Jiang (yj2688)
+
+-   Lydia Zhang (zz2780)
+
+-   Hongmiao Wang (hw2861)
+
+-   Mingkai(Charles) Chen(mc5296)
+
+## Tentative Project Title
+
+**NYC Traffic and Distribution of Speed Reducer**
+
+## Motivation for this project
+
+To investigate the trend of New York City traffic volume and traffic
+speed by areas, as well as distribution of speed reducers in NYC.
+
+## Intended final products
+
+-   Project report (statistical calculations and discussion)
+-   Visualization of relationships between independent and dependent
+    variables displayed using plotly
+-   Website with design
+
+## Primary data sources
+
+-   Speed: Real-Time Traffic Speed Data
+
+-   Traffic volume counts: Automated Traffic Volume Counts \| NYC Open
+    Data
+
+-   Speed reducer: Speed Reducer Tracking System (SRTS) \| NYC Open Data
+
+## Other data sources if applicable
+
+-   Traffic signals:
+    <https://data.cityofnewyork.us/Transportation/DOT-Street-Lights-and-Traffic-Signals-311-Service-/jwvp-gyiq>
+
+-   Weather: <https://www.ncdc.noaa.gov/cdo-web/search>
+
+-   Holiday: <https://www.redcort.com/us-federal-bank-holidays>
+
+-   Open street locations:
+    <https://data.cityofnewyork.us/Health/Open-Streets-Locations/uiay-nctu>
+
+## Planned analyses
+
+-   Descriptive analysis
+
+-   Linear regression
+
+-   Visualizations
+
+    -   scatterplots
+
+    -   regression line
+
+    -   barplots
+
+    -   dashboard
+
+## Coding challenges
+
+-   Mapping geographic coordinates
+
+-   Linking multiple datasets
+
+## Planned timeline
+
+11/8-12/10
+
+-   Weekly meeting after class
+
+-   Data processing and cleaning by Nov.24
+
+-   Report drafting by Dec.2
+
+-   Website designing and visualization by Dec.8

@@ -1,7 +1,7 @@
 ---
 title: "Project Proposal"
 date: "2022-11-11"
-output: html_document
+output: github_document
 ---
 
 ## Group Member:
