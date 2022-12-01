@@ -39,7 +39,7 @@ crime_df <- crime_raw %>%
     victim_race = factor(vic_race),
     victim_sex = factor(recode(vic_sex, "F" = "Female", "M" = "Male", "D" = "Business/Organization", "E" = "PSNY/People of the State of New York"))) %>%
   mutate(
-    day_of_week = weekdays(date),
+    day_of_week = factor(weekdays(date)),
     mon = month(date),
     hour_of_day = hour(hour_of_day)
   )
@@ -92,15 +92,24 @@ new_crime_df = crime_df %>%
   summarize(
     total_crime = n(),
     ) 
+crime_weather = merge(new_crime_df, average_weather, by = "date")
 
-data_total1 = merge(crime_df, average_weather, by = "date")
-
-data_total2 = merge(new_crime_df, average_weather, by = "date")
-(data_total2)
 
  
   
 
 
 ```
+```{r}
+crime_df %>%
+  count(offense, name = "offense_total") %>%
+  arrange(desc(offense_total)) %>%
+  filter(offense_total > 10) %>%
+  ggplot(aes(x = offense_total, y = fct_reorder(offense, offense_total),width = 1)) +
+  geom_bar(stat = "identity") + 
+  theme(axis.title =  element_text(size=5,face = "bold"))
+```
   
+
+  
+```
