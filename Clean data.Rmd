@@ -55,7 +55,7 @@ head(crime_df)
 ```{r}
 weather = rnoaa::meteo_pull_monitors(
     c("USW00094728", "USW00094789", "USW00014732"),
-    var = c("PRCP", "TMIN", "TMAX"), 
+    var = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"),
     date_min = "2016-01-01",
     date_max = "2017-12-31") %>%
   mutate(
@@ -72,6 +72,7 @@ weather = rnoaa::meteo_pull_monitors(
 average_weather <- weather %>% 
   group_by(date) %>%
   summarise(
+    mean_snow = mean(snwd),
     mean_prcp = mean(prcp),
     mean_tmin = mean(tmin),
     mean_tmax = mean(tmax)
@@ -93,8 +94,7 @@ new_crime_df = crime_df %>%
 data_total1 = merge(crime_df, average_weather, by = "date")
 
 data_total2 = merge(new_crime_df, average_weather, by = "date")
-
-head(data_total2)
+(data_total2)
 
  
   
