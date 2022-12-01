@@ -1,0 +1,100 @@
+---
+title: "Data Cleaning"
+output: html_document
+date: "2022-11-30"
+---
+
+```{r}
+library(ggplot2) # Data visualization
+
+library(gridExtra) # ggplot subplotting
+
+library(readr) # CSV file I/O, e.g. the read_csv function
+
+library(dplyr) # Manipulating DataFrames
+
+library(lubridate)
+
+crime_raw <- read.csv("data/nyc_complaint_data.csv")
+
+```
+
+## Crime data clean
+
+```{r}
+crime_df <- crime_raw %>%
+  janitor::clean_names() %>%
+  mutate(
+    date = mdy(cmplnt_fr_dt),
+    time = cmplnt_fr_tm,
+    borough = boro_nm,
+    type = law_cat_cd,
+    crime = ofns_desc, 
+    place = prem_typ_desc,
+    suspect_age = susp_age_group,
+    suspect_race = factor(susp_race),
+    suspect_sex = factor(recode(susp_sex, "U" = "Unkonwn", "F" = "Female", "M" = "Male")),
+    victim_age = vic_age_group,
+    victim_race = factor(vic_race),
+    victim_sex = factor(recode(vic_sex, "F" = "Female", "M" = "Male", "D" = "Dual"))
+    
+    
+  ) 
+
+
+crime_df <- crime_df %>%
+  select(date:victim_sex, latitude,longitude)
+```
+
+ 
+## weather data clean
+```{r}
+weather = rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USW00094789", "USW00014732"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2016-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USW00094789 = "JFK Airport_NY",
+      USW00014732 = "La Guardia_NY"),
+    
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+
+average_weather <- weather %>% 
+  group_by(date) %>%
+  summarise(
+    mean_prcp = mean(prcp),
+    mean_tmin = mean(tmin),
+    mean_tmax = mean(tmax)
+  )
+  
+
+```
+
+## Merge data
+```{r}
+crime_df
+
+new_crime_df = crime_df %>%
+  group_by(date)%>%
+  summarize(
+    total_crime = n(),
+    ) 
+
+data_total1 = merge(crime_df, average_weather, by = "date")
+
+data_total2 = merge(new_crime_df, average_weather, by = "date")
+
+data_total2
+
+ 
+  
+
+
+```
+  
