@@ -26,24 +26,28 @@ crime_df <- crime_raw %>%
   janitor::clean_names() %>%
   mutate(
     date = mdy(cmplnt_fr_dt),
-    time = cmplnt_fr_tm,
+    hour_of_day = as.POSIXct(cmplnt_fr_tm, format="%H:%M:%OS"),
     borough = boro_nm,
-    type = law_cat_cd,
-    crime = ofns_desc, 
+    level = law_cat_cd,
+    offense = ofns_desc,
+    offense_classification = pd_desc,
     place = prem_typ_desc,
     suspect_age = susp_age_group,
     suspect_race = factor(susp_race),
     suspect_sex = factor(recode(susp_sex, "U" = "Unkonwn", "F" = "Female", "M" = "Male")),
     victim_age = vic_age_group,
     victim_race = factor(vic_race),
-    victim_sex = factor(recode(vic_sex, "F" = "Female", "M" = "Male", "D" = "Dual"))
-    
-    
-  ) 
+    victim_sex = factor(recode(vic_sex, "F" = "Female", "M" = "Male", "D" = "Business/Organization", "E" = "PSNY/People of the State of New York"))) %>%
+  mutate(
+    day_of_week = weekdays(date),
+    mon = month(date),
+    hour_of_day = hour(hour_of_day)
+  )
 
 
 crime_df <- crime_df %>%
-  select(date:victim_sex, latitude,longitude)
+ select(date:mon, latitude,longitude)
+head(crime_df)
 ```
 
  
@@ -90,7 +94,7 @@ data_total1 = merge(crime_df, average_weather, by = "date")
 
 data_total2 = merge(new_crime_df, average_weather, by = "date")
 
-data_total2
+head(data_total2)
 
  
   
