@@ -47,7 +47,9 @@ crime_df <- crime_raw %>%
 
 crime_df <- crime_df %>%
  select(date:mon, latitude,longitude)
-head(crime_df)
+
+crime_df %>%
+write.csv("data/crime_df.csv")
 ```
 
  
