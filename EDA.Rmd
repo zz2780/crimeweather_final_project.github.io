@@ -5,7 +5,6 @@ date: "2022-12-01"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 library(forcats)
 library(ggplot2) # Data visualization
 library(gridExtra) # ggplot subplotting
@@ -14,13 +13,87 @@ library(dplyr) # Manipulating DataFrames
 library(tidyverse)
 library(lubridate)
 library(RColorBrewer)
+knitr::opts_chunk$set(
+  fig.height = 6,
+  fig.width = 8,
+  message = F,
+  echo = T,
+  warning = F,
+  cache = F
+)
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis",
+  digits = 3
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+set.seed(1)
 ```
 
 ## R Markdown
 
 
 ```{r, warning=FALSE, error=FALSE}
+crime_raw <- read.csv("data/nyc_complaint_data.csv")
 
+crime_df <- crime_raw %>%
+  janitor::clean_names() %>%
+  mutate(
+    date = mdy(cmplnt_fr_dt),
+    hour_of_day = as.POSIXct(cmplnt_fr_tm, format="%H:%M:%OS"),
+    borough = boro_nm,
+    level = law_cat_cd,
+    offense = ofns_desc,
+    offense_classification = pd_desc,
+    place = prem_typ_desc,
+    suspect_age = susp_age_group,
+    suspect_race = factor(susp_race),
+    suspect_sex = factor(recode(susp_sex, "U" = "Unkonwn", "F" = "Female", "M" = "Male")),
+    victim_age = vic_age_group,
+    victim_race = factor(vic_race),
+    victim_sex = factor(recode(vic_sex, "F" = "Female", "M" = "Male", "D" = "Business/Organization", "E" = "PSNY/People of the State of New York"))) %>%
+  mutate(
+    day_of_week = factor(weekdays(date)),
+    mon = month(date),
+    hour_of_day = hour(hour_of_day)
+  )
+
+
+crime_df = crime_df %>%
+ select(date:mon, latitude,longitude)
+
+weather = rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USW00094789", "USW00014732"),
+    var = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"),
+    date_min = "2016-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USW00094789 = "JFK Airport_NY",
+      USW00014732 = "La Guardia_NY"),
+    
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+
+average_weather = weather %>% 
+  group_by(date) %>%
+  summarise(
+    mean_snow = mean(snwd),
+    mean_prcp = mean(prcp),
+    mean_tmin = mean(tmin),
+    mean_tmax = mean(tmax)
+  )
+
+new_crime_df = crime_df %>%
+  group_by(date,mon,day_of_week)%>%
+  summarize(
+    total_crime = n(),
+    ) 
 ```
 
 ## Some exploration
@@ -34,7 +107,7 @@ crime_weather1 = crime_weather %>%
 
 crime_weather_plot = ggplot(crime_weather1, aes(x = date, y = value)) + 
   geom_line(aes(color = variable, linetype = variable)) + 
-  scale_color_manual(values = c("lightpink", "darkgreen", "lightgreen", "steelblue")) + 
+  scale_color_manual(values = c("wheat3", "seagreen3", "orangered1", "steelblue")) + 
   labs(x="Date", 
        y="Number of Crimes /Max Temperature/
        Mean Snow/Precipitation",
@@ -70,6 +143,7 @@ crime_month = new_crime_df %>%
   arrange(char) %>% select(-MonthName) %>% 
   rename(month = char) %>% mutate(month = as.character(month))
 
+
 mp = ggplot(crime_month,
        aes(x = month, y = mean_total_crimes, fill = month)) +
   geom_col(fill = "lightblue",colour = "steelblue") +
@@ -82,6 +156,59 @@ mp = ggplot(crime_month,
   theme_bw() +
   theme(legend.position = "off", plot.title=element_text(hjust=0.5))
 
+mp
+```
 
+```{r, warning=FALSE, error=FALSE}
+#Crime and weekdays
+
+crime_weekday = new_crime_df %>% 
+  group_by(day_of_week) %>% 
+  summarise(mean_crime = mean(total_crime)) %>% 
+  mutate(char = case_when(day_of_week == "Monday" ~ 01, 
+                          day_of_week == "Tuesday" ~ 02,
+                          day_of_week == "Wednesday" ~ 03, 
+                          day_of_week == "Thursday" ~ 04,
+                          day_of_week == "Friday" ~ 05,
+                          day_of_week == "Saturday" ~ 06,
+                          day_of_week == "Sunday" ~ 07)) %>%
+  arrange(char) %>% select(-char)
+
+weekday = ggplot(crime_weekday,
+       aes(x = day_of_week, y = mean_crime, fill = day_of_week, alpha=0.2)) +
+  geom_col() +
+  geom_text(aes(label = mean_crime), vjust = -0.5) + 
+  labs(x="Day of Week", 
+       y="Number of Crimes",
+       title = "Average Total Number of Crimes
+       Each Week In 2016 & 2017") +
+  scale_x_discrete(limits=crime_weekday$day_of_week) +
+  theme_bw() +
+  theme(legend.position = "off", plot.title=element_text(hjust=0.5))
+  
+weekday
+
+#Crime and hours
+
+crime_hour = crime_df %>%
+  group_by(date,mon,day_of_week, hour_of_day)%>%
+  summarize(
+    total_crime = n(),
+    ) %>%
+  group_by(hour_of_day) %>% 
+  summarize(mean_crime = mean(total_crime))
+
+crime_hour_plot = ggplot(crime_hour,
+       aes(x = hour_of_day, y = mean_crime, fill = hour_of_day, alpha=0.2)) +
+  geom_col(fill = "plum4", colour = "powderblue") +
+  labs(x="Hour of Day", 
+       y="Average Number of Crimes",
+       title = "Average Total Number of Crimes In 24 Hours
+        Per Day In 2016 & 2017") +
+  scale_x_discrete(limits=crime_hour$hour_of_day) +
+  theme_bw() +
+  theme(legend.position = "off", plot.title=element_text(hjust=0.5))
+  
+crime_hour_plot
 
 ```
