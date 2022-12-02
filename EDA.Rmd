@@ -13,26 +13,20 @@ library(readr) # CSV file I/O, e.g. the read_csv function
 library(dplyr) # Manipulating DataFrames
 library(tidyverse)
 library(lubridate)
+library(RColorBrewer)
 ```
 
 ## R Markdown
 
 
 ```{r, warning=FALSE, error=FALSE}
-crime_df %>%
-  count(offense, name = "offense_total") %>%
-  arrange(desc(offense_total)) %>%
-  filter(offense_total > 10) %>%
-  ggplot(aes(x = offense_total, y = fct_reorder(offense, offense_total),width = 1)) +
-  geom_bar(stat = "identity") + 
-  theme(axis.title =  element_text(size=5,face = "bold"))
 
 ```
 
-## Including Plots
-
+## Some exploration
 
 ```{r, warning=FALSE, error=FALSE}
+crime_weather = merge(new_crime_df, average_weather, by = "date")
 
 crime_weather1 = crime_weather %>% 
   select(date, total_crime, mean_tmin, mean_snow, mean_prcp) %>%
@@ -52,4 +46,42 @@ crime_weather_plot
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r, warning=FALSE, error=FALSE}
+# Crime numbers by month
+
+crime_month = new_crime_df %>% 
+    group_by(month = lubridate::floor_date(date, 'month')) %>%
+    summarize(sum_of_crimes = sum(total_crime)) %>% 
+  mutate(MonthName = as.character(month(month, label = TRUE, abbr = FALSE))) %>% 
+  group_by(MonthName) %>%
+  summarize(mean_total_crimes = mean(sum_of_crimes)) %>% 
+  mutate(char = case_when(MonthName == "January" ~ 01, 
+                          MonthName == "February" ~ 02,
+                          MonthName == "March" ~ 03, 
+                          MonthName == "April" ~ 04,
+                          MonthName == "May" ~ 05,
+                          MonthName == "June" ~ 06,
+                          MonthName == "July" ~ 07,
+                          MonthName == "August" ~ 08,
+                          MonthName == "September" ~ 09,
+                          MonthName == "October" ~ 10,
+                          MonthName == "November" ~ 11,
+                          MonthName == "December" ~ 12)) %>%
+  arrange(char) %>% select(-MonthName) %>% 
+  rename(month = char) %>% mutate(month = as.character(month))
+
+mp = ggplot(crime_month,
+       aes(x = month, y = mean_total_crimes, fill = month)) +
+  geom_col(fill = "lightblue",colour = "steelblue") +
+  geom_text(aes(label = mean_total_crimes), vjust = -0.5) + 
+  labs(x="Month", 
+       y="Number of Crimes",
+       title = "Average Total Number of Crimes 
+       By Month In 2016 & 2017") +
+  scale_x_discrete(limits=crime_month$month) +
+  theme_bw() +
+  theme(legend.position = "off", plot.title=element_text(hjust=0.5))
+
+
+
+```
