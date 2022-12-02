@@ -1,0 +1,87 @@
+---
+title: "Shiny Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library(readr)
+library(tidyverse)
+library(plotly)
+
+crime_df <- read.csv("data/crime_df.csv")
+```
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+boros = crime_df %>% distinct(borough) %>% pull()
+
+# selectInput widget
+selectInput(
+  "boro_choice", 
+  label = h3("Select borough"),
+  choices = boros, selected = "Manhattan")
+
+max_hour = 23
+min_hour = 0
+  
+# sliderInput widget
+sliderInput(
+  "hour_of_day_choice", 
+  label = h3("Choose hour of the day"), 
+  min = min_hour, max = max_hour, value = c(17, 18))
+
+crime_level = crime_df %>% distinct(level) %>% pull()
+
+# radioButtons widget
+radioButtons(
+  "crime_level", 
+  label = h3("Choose level of crime"),
+  choices = crime_level, selected = "FELONY")
+```
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+renderPlotly({
+  crime_df %>%
+    filter(
+    borough == input$boro_choice, 
+    hour_of_day %in% input$hour_of_day_choice[1]:input$hour_of_day_choice[2],
+    level == input$crime_level) %>%
+  group_by(borough, hour_of_day, level)%>%
+  count(offense, name = "offense_total") %>%
+  arrange(desc(offense_total)) %>%
+  filter(offense_total > 10) %>%
+  plot_ly(
+    x = ~offense_total, y = ~reorder(offense, offense_total), type = "bar", color = ~level)%>%
+    layout( xaxis = list(title = ""),
+         yaxis = list(title = ""))
+})
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+
+```
+
+### Chart C
+
+```{r}
+
+```
+
