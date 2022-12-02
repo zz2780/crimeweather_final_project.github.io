@@ -1,0 +1,55 @@
+---
+title: "EDA"
+output: html_document
+date: "2022-12-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(forcats)
+library(ggplot2) # Data visualization
+library(gridExtra) # ggplot subplotting
+library(readr) # CSV file I/O, e.g. the read_csv function
+library(dplyr) # Manipulating DataFrames
+library(tidyverse)
+library(lubridate)
+```
+
+## R Markdown
+
+
+```{r, warning=FALSE, error=FALSE}
+crime_df %>%
+  count(offense, name = "offense_total") %>%
+  arrange(desc(offense_total)) %>%
+  filter(offense_total > 10) %>%
+  ggplot(aes(x = offense_total, y = fct_reorder(offense, offense_total),width = 1)) +
+  geom_bar(stat = "identity") + 
+  theme(axis.title =  element_text(size=5,face = "bold"))
+
+```
+
+## Including Plots
+
+
+```{r, warning=FALSE, error=FALSE}
+
+crime_weather1 = crime_weather %>% 
+  select(date, total_crime, mean_tmin, mean_snow, mean_prcp) %>%
+  gather(key = "variable", value = "value", -date)
+
+crime_weather_plot = ggplot(crime_weather1, aes(x = date, y = value)) + 
+  geom_line(aes(color = variable, linetype = variable)) + 
+  scale_color_manual(values = c("lightpink", "darkgreen", "lightgreen", "steelblue")) + 
+  labs(x="Date", 
+       y="Number of Crimes /Max Temperature/
+       Mean Snow/Precipitation",
+       title = "Total Number of Crimes and Mean Snow, Mean Precipitation, 
+       Max Temparature In 2016 & 2017") + 
+  theme(legend.position = "bottom", plot.title=element_text(hjust=0.5))
+
+crime_weather_plot
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
