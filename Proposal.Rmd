@@ -22,53 +22,38 @@ output: github_document
 
 ## Motivation for this project
 
-To investigate the trend of New York City traffic volume and traffic speed by areas, as well as distribution of speed reducers in NYC.
+We want to find out how weather (temperature, rainfall) affects crimes (type, numbers) in New York City.
 
 ## Intended final products
 
 * Project report (statistical calculations and discussion) 
-* Visualization of relationships between independent and dependent variables displayed using plotly 
+* Visualization and use of shiny app
 * Website with design
 
 ## Primary data sources
 
-* Speed: Real-Time Traffic Speed Data
+NYPD Complaint Data Current: https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-Year-To-Date-/5uac-w243
 
-* Traffic volume counts: Automated Traffic Volume Counts | NYC Open Data
+Weather: https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.ncdc:C00861/html
 
-* Speed reducer: Speed Reducer Tracking System (SRTS) | NYC Open Data
 
-## Other data sources if applicable
-
-* Traffic signals: https://data.cityofnewyork.us/Transportation/DOT-Street-Lights-and-Traffic-Signals-311-Service-/jwvp-gyiq
-
-* Weather: https://www.ncdc.noaa.gov/cdo-web/search
-
-* Holiday: https://www.redcort.com/us-federal-bank-holidays
-
-* Open street locations: https://data.cityofnewyork.us/Health/Open-Streets-Locations/uiay-nctu
 
 ## Planned analyses
 
 * Descriptive analysis
+* statistical tests (ANOVA)
 
-* Linear regression
+## Visualizations: 
 
-* Visualizations
+scatterplots + barplots +map+ dashboard
 
-  + scatterplots 
-  
-  + regression line 
-  
-  + barplots 
-  
-  + dashboard
 
 ## Coding challenges
 
-* Mapping geographic coordinates
+* Interactive Shiny page
 
-* Linking multiple datasets
+* Website design
+
 
 ## Planned timeline
 
@@ -76,9 +61,9 @@ To investigate the trend of New York City traffic volume and traffic speed by ar
 
 * Weekly meeting after class
 
-* Data processing and cleaning by Nov.24
+* Data processing and cleaning by Dec.1
 
-* Report drafting by Dec.2
+* Report drafting by Dec.8
 
 * Website designing and visualization by Dec.8
 

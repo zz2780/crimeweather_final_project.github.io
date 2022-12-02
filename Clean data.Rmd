@@ -7,11 +7,7 @@ date: "2022-11-30"
 ```{r}
 library(ggplot2) # Data visualization
 
-library(gridExtra) # ggplot subplotting
-
-library(readr) # CSV file I/O, e.g. the read_csv function
-
-library(dplyr) # Manipulating DataFrames
+library(tidyverse) # Manipulating DataFrames
 
 library(lubridate)
 
@@ -78,38 +74,9 @@ average_weather <- weather %>%
     mean_prcp = mean(prcp),
     mean_tmin = mean(tmin),
     mean_tmax = mean(tmax)
-  )
-  
-
+  ) %>%
+  write.csv("data/weather.csv")
 ```
 
-## Merge data
-```{r}
-crime_df
-
-new_crime_df = crime_df %>%
-  group_by(date)%>%
-  summarize(
-    total_crime = n(),
-    ) 
-crime_weather = merge(new_crime_df, average_weather, by = "date")
-
-
- 
-  
-
-
-```
-```{r}
-crime_df %>%
-  count(offense, name = "offense_total") %>%
-  arrange(desc(offense_total)) %>%
-  filter(offense_total > 10) %>%
-  ggplot(aes(x = offense_total, y = fct_reorder(offense, offense_total),width = 1)) +
-  geom_bar(stat = "identity") + 
-  theme(axis.title =  element_text(size=5,face = "bold"))
-```
-  
 
   
-```
