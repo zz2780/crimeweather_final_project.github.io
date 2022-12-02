@@ -1,0 +1,171 @@
+---
+title: "Model_Analysis"
+output: html_document
+date: "2022-12-01"
+---
+
+In some articles, we knew that weather affect crime rate. 
+For example, the hotter the weather is, the more likely people are to commit crimes. 
+The worse the weather is, the less likely people are to go out and commit crimes. 
+Here we want to predict number of crimes each day in New York as our outcome and precipitation, 
+snow depth, maximum temperature and minimum temperature as predictors.
+
+
+```{r, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(modelr)
+library(ggplot2)
+library(viridis)
+library(car)
+knitr::opts_chunk$set(
+  fig.height = 6,
+  fig.width = 8,
+  message = F,
+  echo = T,
+  warning = F,
+  cache = F
+)
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis",
+  digits = 3
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+set.seed(1)
+```
+
+
+
+```{r include = FALSE}
+crime_df <- read.csv("data/crime_df.csv")
+
+weather <- read.csv("data/weather.csv")
+
+new_crime_df = crime_df %>%
+  group_by(date,mon,day_of_week)%>%
+  summarize(
+    total_crime = n(),
+    ) 
+
+
+crime_weather = merge(new_crime_df, weather, by = "date")
+```
+
+First, let's check the distribution of number of crime cases each day in New York 
+```{r}
+ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()
+```
+From the distribution of daily cases, we noticed that it is approximately normally 
+distributed, therefore we don't need to transform the value of the outcome.
+
+First we use scatter plot to investigate the association between weather and cases
+and crime 
+
+
+```{r}
+ggplot(crime_weather, aes(x = mean_tmax, y = total_crime)) + geom_point() 
+ggplot(crime_weather, aes(x = mean_tmin, y = total_crime)) + geom_point() 
+ggplot(crime_weather, aes(x = mean_prcp, y = total_crime)) + geom_point() 
+ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point() 
+```
+ 
+I noticed that all of the four predictors may have association with the number of cases
+of crime in New York, So I proposed three models. I also select months and weekdays as predictors.
+
+```{r}
+full_model = lm(total_crime ~ mon + day_of_week + mean_tmin + mean_tmax + mean_prcp + mean_snow, data = crime_weather)
+summary(full_model) %>%
+  broom::tidy() %>%
+  knitr::kable(digits = 2)
+
+```
+
+I noticed that both tmax and tmin are not significant, which may be attributed to their
+correlation, so I calculated the VIF.
+
+```{r}
+vif(full_model)
+```
+
+It is obvious that the VIF of tmin and tmax is high, so I chose to drop one of them.
+
+```{r}
+model1 = lm(total_crime ~ mon + day_of_week + mean_tmax + mean_prcp + mean_snow, data = crime_weather)
+summary(model1) %>%
+  broom::tidy() %>%
+  knitr::kable(digits = 2)
+```
+This time, the tmax becomes significant. And it has a positive effect on crime rate, 
+which validate our assumption.
+
+We also proposed other models
+```{r}
+model2 = lm(total_crime ~ mon +day_of_week +  mean_tmax + mean_prcp, data = crime_weather)
+summary(model2) %>%
+  broom::tidy() %>%
+  knitr::kable(digits = 2)
+```
+```{r}
+model3 <- lm(total_crime ~  mon +day_of_week +  mean_tmax + mean_prcp + mean_snow + mean_tmax*day_of_week, data = crime_weather )
+summary(model3) %>%
+    broom::tidy() %>%
+  knitr::kable(digits = 2)
+```
+In model 3 , we assume that there is an interaction between temperature and day of week, however, the interaction term are not significant.
+
+```{r}
+model4 <- lm(total_crime ~ mean_tmax + mean_prcp + mean_snow, data = crime_weather)
+summary(model4)
+```
+
+# Cross Validation
+We omit model3, and we found the variable of other three models are all statistically significant, so we use cross validation to compare the models.
+```{r}
+cv_df <- 
+  crossv_mc(crime_weather, 100) %>%  
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble)
+  )
+```
+
+```{r}
+cv_df <- 
+  cv_df %>% 
+  mutate(
+    model1 = map( train, ~lm(total_crime ~ mon + day_of_week + mean_tmax + mean_prcp + mean_snow, data = crime_weather)),
+    model2 =  map( train, ~lm(total_crime ~ mon +day_of_week +  mean_tmax + mean_prcp, data = crime_weather)),
+    model4 = map( train, ~lm( total_crime ~ mean_tmax + mean_prcp + mean_snow, data = crime_weather))) %>%
+   mutate(
+    rmse_model1 = map2_dbl( model1,  test, ~rmse(model = .x, data =.y)),
+    rmse_model2 = map2_dbl( model2,  test, ~rmse(model = .x, data =.y)),
+    rmse_model4 = map2_dbl( model4, test, ~rmse(model = .x, data =.y))
+  ) 
+```
+
+
+```{r}
+cv_df %>% 
+  select(starts_with("rmse")) %>% 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") %>% 
+  mutate(model = fct_inorder(model)) %>% 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()
+
+cv_df %>% 
+  summarize(
+    rmse_1 = mean(rmse_model1),
+    rmse_2 = mean(rmse_model2),
+    rmse_3 = mean(rmse_model4)
+  ) %>%
+  knitr::kable()
+```
+
+ We would say model1 will be better than the other two models because its root means square error seems to be smaller. Therefore, model1 could be useful for predicting the total number of crime cases each day in New York.
+
