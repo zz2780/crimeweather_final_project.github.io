@@ -216,14 +216,14 @@ crime_hour_plot
 ```{r, warning=FALSE, error=FALSE}
 #Histogram of crimes in 5 boroughs
 
-his = crime_df %>% 
+his1 = crime_df %>% 
   mutate(borough = fct_reorder(borough, mon)) %>%
   ggplot(aes(x=mon, color=borough, fill=borough)) +
     geom_histogram(alpha=0.6, binwidth = 1, bins = 12, stat= "count") +
   scale_x_continuous(breaks=1:12) +
   labs(y="Count", 
        x="Month",
-       title = "Occurence of Crimes in Each Borough of NYC Across 12 Months") +
+       title = "Distribution of Crimes in Each Borough of NYC Across 12 Months") +
     theme(legend.position="bottom",
       panel.spacing = unit(0.1, "lines"),
       strip.text.x = element_text(size = 8),
@@ -231,6 +231,24 @@ his = crime_df %>%
       ) +
     facet_wrap(~borough)
 
-his
+his1
+
+his2 = crime_df %>% 
+  mutate(borough = fct_reorder(borough, hour_of_day)) %>%
+  ggplot(aes(x=hour_of_day, color=borough, fill=borough)) +
+    geom_histogram(alpha=0.6, binwidth = 1, bins = 24, stat= "count") +
+  scale_x_continuous(breaks=0:23) +
+  labs(y="Count", 
+       x="Hour of Day",
+       title = "Distribution of Crimes in Each Borough of NYC in 24 Hours") +
+    theme(legend.position="bottom",
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8),
+      plot.title=element_text(hjust=0.5)
+      ) +
+    facet_wrap(~borough)
+
+his2
+
 
 ```
