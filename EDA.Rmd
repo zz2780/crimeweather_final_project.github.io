@@ -250,5 +250,71 @@ his2 = crime_df %>%
 
 his2
 
+#Level of Crimes and Distribution in Borough
 
+his3 = crime_df %>% 
+  mutate(borough = fct_reorder(borough, level)) %>%
+  ggplot(aes(x=level, color=borough, fill=borough)) +
+    geom_histogram(alpha=0.6, binwidth = 1, stat= "count") +
+  labs(y="Count", 
+       x="Level of Crime",
+       title = "Level and Distribution of Crimes in Each Borough of NYC") +
+    theme(legend.position="bottom",
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8),
+      plot.title=element_text(hjust=0.5)
+      ) +
+    facet_wrap(~borough)
+
+his3
+
+offense_type = crime_df %>%
+  filter(offense == 'PETIT LARCENY'| offense == 'HARRASSMENT 2'| offense == 'ASSAULT 3 & RELATED OFFENSES')
+
+
+his4 = offense_type %>%
+  mutate(offense = fct_reorder(offense, borough)) %>%
+  ggplot(aes(x=borough, color=offense, fill=offense)) +
+    geom_histogram(alpha=0.6, binwidth = 1, stat= "count") +
+  labs(y="Count", 
+       x="Borough",
+       title = "Distribution of Top 3 Offenses in NYC Boroughs") +
+    theme(legend.position="bottom",
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8),
+      plot.title=element_text(hjust=0.5)
+      ) +
+    facet_wrap(~offense)
+
+his4
+
+hotmonth = weather %>%
+  group_by(month = lubridate::floor_date(date, 'month')) %>% 
+  mutate(month = as.numeric(month(month, label = TRUE, abbr = FALSE))) %>% 
+  summarise(mean_tmax=mean(tmax)) %>% 
+  arrange(mean_tmax)
+
+#Months with highest temp: 7, 8
+#Relate temperature to offense types
+hotcrime = offense_type %>% 
+  filter(mon == 7 | mon == 8) %>% 
+  mutate(offense = fct_reorder(offense, hour_of_day)) %>%
+  ggplot(aes(x=hour_of_day, color=offense, fill=offense)) +
+    geom_histogram(alpha=0.6, binwidth = 1, bins = 24, stat= "count") +
+  scale_x_continuous(breaks=0:23) +
+  labs(y="Count", 
+       x="Hour of Day",
+       title = "Occurrence of Top 3 Offenses in 24 Hour Time Frame
+       During July and August (temperature > 29°C)") +
+    theme(legend.position="bottom",
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8),
+      plot.title=element_text(hjust=0.5)
+      ) +
+    facet_wrap(~offense)
+
+hotcrime
+
+  
+  
 ```
