@@ -66,7 +66,7 @@ radioButtons(
 Column
 -----------------------------------------------------------------------
 
-### Distribution of Crimes in New York City
+### Distribution of Offenses in New York City
 
 ```{r}
 renderPlotly({
