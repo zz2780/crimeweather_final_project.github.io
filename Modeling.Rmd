@@ -1,7 +1,10 @@
 ---
-title: "Model_Analysis"
-output: html_document
-date: "2022-12-01"
+title: "Modeling"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
 ---
 
 In some articles, we knew that weather affect crime rate. 
@@ -75,6 +78,9 @@ ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()
 I noticed that all of the four predictors may have association with the number of cases
 of crime in New York, So I proposed three models. I also select months and weekdays as predictors.
 
+## Fitting Model
+ 
+Firstly, I use month, weekdays and all weather data as predictors
 ```{r}
 full_model = lm(total_crime ~ mon + day_of_week + mean_tmin + mean_tmax + mean_prcp + mean_snow, data = crime_weather)
 summary(full_model) %>%
@@ -87,11 +93,13 @@ I noticed that both tmax and tmin are not significant, which may be attributed t
 correlation, so I calculated the VIF.
 
 ```{r}
-vif(full_model)
+vif(full_model) %>%
+  knitr::kable()
 ```
 
-It is obvious that the VIF of tmin and tmax is high, so I chose to drop one of them.
+It is obvious that the VIF of tmin and tmax is high, so I chose to drop tmin.
 
+The second proposed model is total_crime ~ mon + day_of_week + mean_tmax + mean_prcp + mean_snow
 ```{r}
 model1 = lm(total_crime ~ mon + day_of_week + mean_tmax + mean_prcp + mean_snow, data = crime_weather)
 summary(model1) %>%
@@ -102,12 +110,16 @@ This time, the tmax becomes significant. And it has a positive effect on crime r
 which validate our assumption.
 
 We also proposed other models
+
+What if the snow depth is not included in the model?
 ```{r}
 model2 = lm(total_crime ~ mon +day_of_week +  mean_tmax + mean_prcp, data = crime_weather)
 summary(model2) %>%
   broom::tidy() %>%
   knitr::kable(digits = 2)
 ```
+
+We also want to try to include a interaction term in our model.
 ```{r}
 model3 <- lm(total_crime ~  mon +day_of_week +  mean_tmax + mean_prcp + mean_snow + mean_tmax*day_of_week, data = crime_weather )
 summary(model3) %>%
@@ -116,13 +128,16 @@ summary(model3) %>%
 ```
 In model 3 , we assume that there is an interaction between temperature and day of week, however, the interaction term are not significant.
 
+We also want to know whether to include months and weekdays in our model.
 ```{r}
 model4 <- lm(total_crime ~ mean_tmax + mean_prcp + mean_snow, data = crime_weather)
-summary(model4)
+summary(model4) %>%
+  broom::tidy() %>%
+  knitr::kable(digits = 2)
 ```
 
-# Cross Validation
-We omit model3, and we found the variable of other three models are all statistically significant, so we use cross validation to compare the models.
+## Cross Validation
+We found the variables of all models except  model 3 are all statistically significant, so we use cross validation to compare the models.
 ```{r}
 cv_df <- 
   crossv_mc(crime_weather, 100) %>%  
