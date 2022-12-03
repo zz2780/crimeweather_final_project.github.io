@@ -1,0 +1,25 @@
+name: "Final_NYPD_Weather!"
+output_dir: "."
+navbar:
+  title: "Home"
+  right:
+    - text: "Project Report"
+      href: 
+    - text: "Summary Visualizations"
+      href: 
+    - text: "Model C"
+      href: 
+    - text: "Model D"
+      href: 
+    - text: "Interactive Map"
+      href: 
+    - icon: fa-github fa-lg
+      href: https://github.com/zz2780/crimeweather_final_project.github.io
+    - icon: fa-envelope fa-lg
+      href: mailto:<hw2861@cumc.columbia.edu>
+    - icon: fa-solid fa-handcuffs
+      href: https://spotcrime.com/
+output:
+  html_document:
+    theme: flatly
+runtime: shiny
