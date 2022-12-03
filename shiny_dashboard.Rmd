@@ -47,10 +47,10 @@ radioButtons(
   choices = crime_level, selected = "FELONY")
 ```
 
-Column {data-width=650}
+Column
 -----------------------------------------------------------------------
 
-### Chart A
+### Distribution of Crimes in New York City
 
 ```{r}
 renderPlotly({
@@ -70,18 +70,5 @@ renderPlotly({
 })
 ```
 
-Column {data-width=350}
------------------------------------------------------------------------
 
-### Chart B
-
-```{r}
-
-```
-
-### Chart C
-
-```{r}
-
-```
 
