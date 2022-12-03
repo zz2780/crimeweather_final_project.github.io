@@ -1,23 +1,42 @@
 ---
-title: "Data Cleaning"
-output: html_document
-date: "2022-11-30"
+title: "Data"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
 ---
 
-```{r}
+```{r setup, include=FALSE}
 library(ggplot2) # Data visualization
 
 library(tidyverse) # Manipulating DataFrames
 
 library(lubridate)
 
-crime_raw <- read.csv("data/nyc_complaint_data.csv")
+knitr::opts_chunk$set(
+  fig.height = 6,
+  fig.width = 8,
+  message = F,
+  echo = T,
+  warning = F,
+  cache = F
+)
 
 ```
 
-## Crime data clean
+## Data sources
+
+* Crime data of New York City is downloaded from NYC Open Data :
+[NYPD Complaint Data Historic](https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Historic/qgea-i56i).
+
+This dataset contains 780 million felony, misdemeanor, and violation crimes reported to the New York City Police Department (NYPD) from 1910 to 2021. Each record contains detailed information of a single crime reported to NYPD. In our project, we select the records from 2016-01-01 to 2017-12-31 to do analysis and modeling.
+
+* Weather data is obtained from website of [NOAA](https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.ncdc:C00861/html)
+
 
 ```{r}
+crime_raw <- read.csv("data/nyc_complaint_data.csv")
 crime_df <- crime_raw %>%
   janitor::clean_names() %>%
   mutate(
@@ -44,12 +63,32 @@ crime_df <- crime_raw %>%
 crime_df <- crime_df %>%
  select(date:mon, latitude,longitude)
 
-crime_df %>%
-write.csv("data/crime_df.csv")
 ```
 
- 
-## weather data clean
+## Data Cleaning and Description
+
+We select part of the variables from the original dataset, add a few variables and change their names to make them easy to read.
+
+#### NYC Crime data
+
+  * `date`. Date the crime occurs.
+  * `hour_of_day`. Occurring time of the crimes
+  * `borough`. Borough the crime occurs.
+  * `level`. Level of offense: felony, misdemeanor, violation.
+  * `offense`. Description of offense.
+  * `offense_classification`. Description of internal classification of offense.
+  * `place`. Specific description of premises; grocery store, residence,street, etc.
+  * `suspect_age`. Suspect’s Age Group.
+  * `suspect_race`. Suspect’s Race Description.
+  * `suspect_sex`. Suspect’s Sex Description.
+  * `victim_age`. Victim’s Age Group.
+  * `victim_race`. Victim’s Race Description.
+  * `victim_sex`. Victim’s Sex Description.
+  * `day_of_week`. Day of week that a crime occurs.
+  * `mon`. Months in a year that a crime occurs.
+  * `latitude`. Latitude of the place the crime occurs.
+  * `longitude`. Longitude of the place the crime occurs.
+
 ```{r}
 weather = rnoaa::meteo_pull_monitors(
     c("USW00094728", "USW00094789", "USW00014732"),
@@ -74,9 +113,24 @@ average_weather <- weather %>%
     mean_prcp = mean(prcp),
     mean_tmin = mean(tmin),
     mean_tmax = mean(tmax)
-  ) %>%
-  write.csv("data/weather.csv")
+  ) 
 ```
 
+#### Weather Data
+
+I selected weather data collected from 2016-01-01 to 2017-12-31 and three weather stations in New York. I 
+calculated mean weather data across the three weather stations.
+
+  * `mean_snow`. snow depth(mm).
+  * `mean_prcp`. precipitation(mm)
+  * `mean_tmin`. minimum temperature of a day
+  * `mean_tmax`. maximum temperature of a day
+
+
+
+
+
+
+ 
 
   
