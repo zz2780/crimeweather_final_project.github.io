@@ -8,10 +8,8 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-library(ggplot2) # Data visualization
-
-library(tidyverse) # Manipulating DataFrames
-
+library(ggplot2)  
+library(tidyverse)  
 library(lubridate)
 
 knitr::opts_chunk$set(
@@ -102,6 +100,7 @@ weather = rnoaa::meteo_pull_monitors(
       USW00094789 = "JFK Airport_NY",
       USW00014732 = "La Guardia_NY"),
     
+    
     tmin = tmin / 10,
     tmax = tmax / 10) %>%
   select(name, id, everything())
@@ -114,6 +113,7 @@ average_weather <- weather %>%
     mean_tmin = mean(tmin),
     mean_tmax = mean(tmax)
   ) 
+
 ```
 
 #### Weather Data
@@ -122,7 +122,7 @@ I selected weather data collected from 2016-01-01 to 2017-12-31 and three weathe
 calculated mean weather data across the three weather stations.
 
   * `mean_snow`. snow depth(mm).
-  * `mean_prcp`. precipitation(mm)
+  * `mean_prcp`. precipitation(tenths of mm)
   * `mean_tmin`. minimum temperature of a day
   * `mean_tmax`. maximum temperature of a day
 

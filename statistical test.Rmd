@@ -1,0 +1,149 @@
+---
+title: "Statistical test"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+knitr::opts_chunk$set(
+  fig.height = 6,
+  fig.width = 8,
+  message = F,
+  echo = T,
+  warning = F,
+  cache = F
+)
+
+crime_df <- read.csv("data/crime_df.csv")
+weather_df <- read.csv("data/weather.csv")
+```
+
+## Chi-squared test on year and types of offense
+
+We want to verify whether the number distribution of different crime types is 
+related to the year. Therefore we performed Chi-squared test for comparison of 
+year of 2016 and 2017 :
+
+$H_0$ : The number distribution of each type of crime was the same in 2016 and 2017
+
+$H_1$ : The number distribution of each type of crime was different in 2016 and 2017
+
+
+```{r}
+crime_weather <- 
+  crime_df %>%
+  group_by(date)%>%
+  summarise(total_crime = n())%>%
+  merge(weather_df,by = "date")
+
+df_1 <- crime_df %>%
+  mutate (
+    year = year(date)
+  )%>%
+  group_by(year,offense) %>%
+  summarise(total_by_level = n()) %>%
+  pivot_wider(
+    names_from = "year",
+    values_from = "total_by_level"
+  )%>%
+  na.omit()
+df_1 %>%
+  head() %>%
+  knitr::kable(digits = 3)
+```
+```{r}
+chisq.test(table(df_1$`2016`, df_1 $`2017`))
+```
+As the result told us, the p-value < 0.05 , therefore we reject the null 
+hypothesis and conclude that the distribution of number of different type of 
+crime cases are different in 2016 and 2017.
+
+## Chi-squared test on Borough and number of different types of offense
+
+We also want to know whether the distribution of number of different type of 
+crime cases across different borough are the same. Therefore, we performed 
+another Chi-squared test on number of different type of crimes and borough.
+Because the population of Staten Island is small, so we did not take it into 
+consideration.
+
+$H_0$ : The number distribution of each type of crime was the same in different boroughs.
+
+$H_1$ : The number distribution of each type of crime was different in different boroughs.
+
+
+
+```{r}
+crime_df_3 <- crime_df %>%
+  group_by(borough, offense)%>%
+  summarise(
+    number = n()
+  ) %>%
+  filter(borough %in% c("BRONX", "BROOKLYN","MANHATTAN", "QUEENS")) %>%
+  pivot_wider(
+    names_from = "borough",
+    values_from = "number"
+  )
+crime_df_3%>%
+  head()%>%
+  knitr::kable(digits = 3)
+```
+```{r}
+chisq.test(crime_df_3$BRONX,crime_df_3$BROOKLYN, crime_df_3$MANHATTAN, crime_df_3$QUEENS)
+```
+We can see p-value is smaller than 0.05, so we reject the null hypothesis and 
+conclude that there's at least one borough's proportions of violation counts 
+for week days is different from others at 0.05 significant level.  
+
+
+## ANOVA between number of crimes per day and weather
+
+We also concerned about whether weather conditions will affect New York City's 
+crime frequency per day. Therefore it is important to test hypotheses according 
+to different weather conditions and crime cases per day.
+
+At first, we divided the daily weather into four categories according to whether 
+the precipitation and rainfall are greater than 0.
+```{r}
+crime_weather_2 <-  crime_weather %>%
+  mutate(weather = case_when(mean_prcp == 0 & mean_snow == 0 ~ 'not_rainy_or_snowy',
+                           mean_prcp >0 & mean_snow >0 ~ 'rainy_and_snowy',
+                           mean_prcp == 0 & mean_snow >0 ~ 'snowy',
+                           mean_prcp >0 & mean_snow == 0 ~ "rainy")) %>%
+  select(total_crime, weather)
+crime_weather_2 %>%
+  head()%>%
+  knitr::kable(digits = 3)
+```
+
+We then conducted one-way ANOVA to test if the true mean daily crime cases of 
+different weather is the same.
+
+$H_0$: There is no difference in the average number of crimes per day under 
+different weather conditions in New York.
+
+$H_1$: At least the average number of crimes per day under two different weather 
+conditions are different.
+
+First, Let's create box-plot of our data.
+
+```{r}
+ggplot(data = crime_weather_2, aes(x = weather, y = total_crime, fill = weather)) + geom_boxplot()
+```
+
+From the plot, the distribution of daily crime number seems different in 
+different weather.
+
+And we conducted a ANOVA test
+```{r}
+res.aov <- aov(total_crime ~ weather, data = crime_weather_2)
+summary(res.aov) 
+```
+
+From the result, the p-value is smaller than 0.05,  therefore we concluded that 
+the average number of crimes per day is correlated to weather. 
+

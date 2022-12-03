@@ -11,7 +11,7 @@
 
 
 
-<title>Data</title>
+<title>Statistical test</title>
 
 <script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -374,121 +374,268 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Data</h1>
+<h1 class="title toc-ignore">Statistical test</h1>
 
 </div>
 
 
-<div id="data-sources" class="section level2">
-<h2>Data sources</h2>
-<ul>
-<li>Crime data of New York City is downloaded from NYC Open Data : <a
-href="https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Historic/qgea-i56i">NYPD
-Complaint Data Historic</a>.</li>
-</ul>
-<p>This dataset contains 780 million felony, misdemeanor, and violation
-crimes reported to the New York City Police Department (NYPD) from 1910
-to 2021. Each record contains detailed information of a single crime
-reported to NYPD. In our project, we select the records from 2016-01-01
-to 2017-12-31 to do analysis and modeling.</p>
-<ul>
-<li>Weather data is obtained from website of <a
-href="https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.ncdc:C00861/html">NOAA</a></li>
-</ul>
-<pre class="r"><code>crime_raw &lt;- read.csv(&quot;data/nyc_complaint_data.csv&quot;)
-crime_df &lt;- crime_raw %&gt;%
-  janitor::clean_names() %&gt;%
-  mutate(
-    date = mdy(cmplnt_fr_dt),
-    hour_of_day = as.POSIXct(cmplnt_fr_tm, format=&quot;%H:%M:%OS&quot;),
-    borough = boro_nm,
-    level = law_cat_cd,
-    offense = ofns_desc,
-    offense_classification = pd_desc,
-    place = prem_typ_desc,
-    suspect_age = susp_age_group,
-    suspect_race = factor(susp_race),
-    suspect_sex = factor(recode(susp_sex, &quot;U&quot; = &quot;Unkonwn&quot;, &quot;F&quot; = &quot;Female&quot;, &quot;M&quot; = &quot;Male&quot;)),
-    victim_age = vic_age_group,
-    victim_race = factor(vic_race),
-    victim_sex = factor(recode(vic_sex, &quot;F&quot; = &quot;Female&quot;, &quot;M&quot; = &quot;Male&quot;, &quot;D&quot; = &quot;Business/Organization&quot;, &quot;E&quot; = &quot;PSNY/People of the State of New York&quot;))) %&gt;%
-  mutate(
-    day_of_week = factor(weekdays(date)),
-    mon = month(date),
-    hour_of_day = hour(hour_of_day)
-  )
+<div id="chi-squared-test-on-year-and-types-of-offense"
+class="section level2">
+<h2>Chi-squared test on year and types of offense</h2>
+<p>We want to verify whether the number distribution of different crime
+types is related to the year. Therefore we performed Chi-squared test
+for comparison of year of 2016 and 2017 :</p>
+<p><span class="math inline">\(H_0\)</span> : The number distribution of
+each type of crime was the same in 2016 and 2017</p>
+<p><span class="math inline">\(H_1\)</span> : The number distribution of
+each type of crime was different in 2016 and 2017</p>
+<pre class="r"><code>crime_weather &lt;- 
+  crime_df %&gt;%
+  group_by(date)%&gt;%
+  summarise(total_crime = n())%&gt;%
+  merge(weather_df,by = &quot;date&quot;)
 
-
-crime_df &lt;- crime_df %&gt;%
- select(date:mon, latitude,longitude)</code></pre>
+df_1 &lt;- crime_df %&gt;%
+  mutate (
+    year = year(date)
+  )%&gt;%
+  group_by(year,offense) %&gt;%
+  summarise(total_by_level = n()) %&gt;%
+  pivot_wider(
+    names_from = &quot;year&quot;,
+    values_from = &quot;total_by_level&quot;
+  )%&gt;%
+  na.omit()
+df_1 %&gt;%
+  head() %&gt;%
+  knitr::kable(digits = 3)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">offense</th>
+<th align="right">2016</th>
+<th align="right">2017</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"></td>
+<td align="right">4</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">ADMINISTRATIVE CODE</td>
+<td align="right">128</td>
+<td align="right">117</td>
+</tr>
+<tr class="odd">
+<td align="left">AGRICULTURE &amp; MRKTS LAW-UNCLASSIFIED</td>
+<td align="right">8</td>
+<td align="right">19</td>
+</tr>
+<tr class="even">
+<td align="left">ALCOHOLIC BEVERAGE CONTROL LAW</td>
+<td align="right">9</td>
+<td align="right">16</td>
+</tr>
+<tr class="odd">
+<td align="left">ARSON</td>
+<td align="right">87</td>
+<td align="right">94</td>
+</tr>
+<tr class="even">
+<td align="left">ASSAULT 3 &amp; RELATED OFFENSES</td>
+<td align="right">6881</td>
+<td align="right">6833</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>chisq.test(table(df_1$`2016`, df_1 $`2017`))</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test
+## 
+## data:  table(df_1$`2016`, df_1$`2017`)
+## X-squared = 2206.1, df = 2068, p-value = 0.01734</code></pre>
+<p>As the result told us, the p-value &lt; 0.05 , therefore we reject
+the null hypothesis and conclude that the distribution of number of
+different type of crime cases are different in 2016 and 2017.</p>
 </div>
-<div id="data-cleaning-and-description" class="section level2">
-<h2>Data Cleaning and Description</h2>
-<p>We select part of the variables from the original dataset, add a few
-variables and change their names to make them easy to read.</p>
-<div id="nyc-crime-data" class="section level4">
-<h4>NYC Crime data</h4>
-<ul>
-<li><code>date</code>. Date the crime occurs.</li>
-<li><code>hour_of_day</code>. Occurring time of the crimes</li>
-<li><code>borough</code>. Borough the crime occurs.</li>
-<li><code>level</code>. Level of offense: felony, misdemeanor,
-violation.</li>
-<li><code>offense</code>. Description of offense.</li>
-<li><code>offense_classification</code>. Description of internal
-classification of offense.</li>
-<li><code>place</code>. Specific description of premises; grocery store,
-residence,street, etc.</li>
-<li><code>suspect_age</code>. Suspect’s Age Group.</li>
-<li><code>suspect_race</code>. Suspect’s Race Description.</li>
-<li><code>suspect_sex</code>. Suspect’s Sex Description.</li>
-<li><code>victim_age</code>. Victim’s Age Group.</li>
-<li><code>victim_race</code>. Victim’s Race Description.</li>
-<li><code>victim_sex</code>. Victim’s Sex Description.</li>
-<li><code>day_of_week</code>. Day of week that a crime occurs.</li>
-<li><code>mon</code>. Months in a year that a crime occurs.</li>
-<li><code>latitude</code>. Latitude of the place the crime occurs.</li>
-<li><code>longitude</code>. Longitude of the place the crime
-occurs.</li>
-</ul>
-<pre class="r"><code>weather = rnoaa::meteo_pull_monitors(
-    c(&quot;USW00094728&quot;, &quot;USW00094789&quot;, &quot;USW00014732&quot;),
-    var = c(&quot;PRCP&quot;, &quot;SNOW&quot;, &quot;SNWD&quot;, &quot;TMAX&quot;, &quot;TMIN&quot;),
-    date_min = &quot;2016-01-01&quot;,
-    date_max = &quot;2017-12-31&quot;) %&gt;%
-  mutate(
-    name = recode(
-      id, 
-      USW00094728 = &quot;CentralPark_NY&quot;, 
-      USW00094789 = &quot;JFK Airport_NY&quot;,
-      USW00014732 = &quot;La Guardia_NY&quot;),
-    
-    
-    tmin = tmin / 10,
-    tmax = tmax / 10) %&gt;%
-  select(name, id, everything())
-
-average_weather &lt;- weather %&gt;% 
-  group_by(date) %&gt;%
+<div
+id="chi-squared-test-on-borough-and-number-of-different-types-of-offense"
+class="section level2">
+<h2>Chi-squared test on Borough and number of different types of
+offense</h2>
+<p>We also want to know whether the distribution of number of different
+type of crime cases across different borough are the same. Therefore, we
+performed another Chi-squared test on number of different type of crimes
+and borough. Because the population of Staten Island is small, so we did
+not take it into consideration.</p>
+<p><span class="math inline">\(H_0\)</span> : The number distribution of
+each type of crime was the same in different boroughs.</p>
+<p><span class="math inline">\(H_1\)</span> : The number distribution of
+each type of crime was different in different boroughs.</p>
+<pre class="r"><code>crime_df_3 &lt;- crime_df %&gt;%
+  group_by(borough, offense)%&gt;%
   summarise(
-    mean_snow = mean(snwd),
-    mean_prcp = mean(prcp),
-    mean_tmin = mean(tmin),
-    mean_tmax = mean(tmax)
-  ) </code></pre>
+    number = n()
+  ) %&gt;%
+  filter(borough %in% c(&quot;BRONX&quot;, &quot;BROOKLYN&quot;,&quot;MANHATTAN&quot;, &quot;QUEENS&quot;)) %&gt;%
+  pivot_wider(
+    names_from = &quot;borough&quot;,
+    values_from = &quot;number&quot;
+  )
+crime_df_3%&gt;%
+  head()%&gt;%
+  knitr::kable(digits = 3)</code></pre>
+<table>
+<colgroup>
+<col width="53%" />
+<col width="8%" />
+<col width="13%" />
+<col width="14%" />
+<col width="10%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">offense</th>
+<th align="right">BRONX</th>
+<th align="right">BROOKLYN</th>
+<th align="right">MANHATTAN</th>
+<th align="right">QUEENS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"></td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">ADMINISTRATIVE CODE</td>
+<td align="right">55</td>
+<td align="right">104</td>
+<td align="right">18</td>
+<td align="right">60</td>
+</tr>
+<tr class="odd">
+<td align="left">AGRICULTURE &amp; MRKTS LAW-UNCLASSIFIED</td>
+<td align="right">7</td>
+<td align="right">7</td>
+<td align="right">3</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">ALCOHOLIC BEVERAGE CONTROL LAW</td>
+<td align="right">11</td>
+<td align="right">10</td>
+<td align="right">3</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">ARSON</td>
+<td align="right">48</td>
+<td align="right">54</td>
+<td align="right">29</td>
+<td align="right">37</td>
+</tr>
+<tr class="even">
+<td align="left">ASSAULT 3 &amp; RELATED OFFENSES</td>
+<td align="right">3608</td>
+<td align="right">4100</td>
+<td align="right">2767</td>
+<td align="right">2675</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>chisq.test(crime_df_3$BRONX,crime_df_3$BROOKLYN, crime_df_3$MANHATTAN, crime_df_3$QUEENS)</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test
+## 
+## data:  crime_df_3$BRONX and crime_df_3$BROOKLYN
+## X-squared = 1781.2, df = 1640, p-value = 0.008003</code></pre>
+<p>We can see p-value is smaller than 0.05, so we reject the null
+hypothesis and conclude that there’s at least one borough’s proportions
+of violation counts for week days is different from others at 0.05
+significant level.</p>
 </div>
-<div id="weather-data" class="section level4">
-<h4>Weather Data</h4>
-<p>I selected weather data collected from 2016-01-01 to 2017-12-31 and
-three weather stations in New York. I calculated mean weather data
-across the three weather stations.</p>
-<ul>
-<li><code>mean_snow</code>. snow depth(mm).</li>
-<li><code>mean_prcp</code>. precipitation(tenths of mm)</li>
-<li><code>mean_tmin</code>. minimum temperature of a day</li>
-<li><code>mean_tmax</code>. maximum temperature of a day</li>
-</ul>
-</div>
+<div id="anova-between-number-of-crimes-per-day-and-weather"
+class="section level2">
+<h2>ANOVA between number of crimes per day and weather</h2>
+<p>We also concerned about whether weather conditions will affect New
+York City’s crime frequency per day. Therefore it is important to test
+hypotheses according to different weather conditions and crime cases per
+day.</p>
+<p>At first, we divided the daily weather into four categories according
+to whether the precipitation and rainfall are greater than 0.</p>
+<pre class="r"><code>crime_weather_2 &lt;-  crime_weather %&gt;%
+  mutate(weather = case_when(mean_prcp == 0 &amp; mean_snow == 0 ~ &#39;not_rainy_or_snowy&#39;,
+                           mean_prcp &gt;0 &amp; mean_snow &gt;0 ~ &#39;rainy_and_snowy&#39;,
+                           mean_prcp == 0 &amp; mean_snow &gt;0 ~ &#39;snowy&#39;,
+                           mean_prcp &gt;0 &amp; mean_snow == 0 ~ &quot;rainy&quot;)) %&gt;%
+  select(total_crime, weather)
+crime_weather_2 %&gt;%
+  head()%&gt;%
+  knitr::kable(digits = 3)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">total_crime</th>
+<th align="left">weather</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">347</td>
+<td align="left">not_rainy_or_snowy</td>
+</tr>
+<tr class="even">
+<td align="right">157</td>
+<td align="left">not_rainy_or_snowy</td>
+</tr>
+<tr class="odd">
+<td align="right">143</td>
+<td align="left">not_rainy_or_snowy</td>
+</tr>
+<tr class="even">
+<td align="right">159</td>
+<td align="left">not_rainy_or_snowy</td>
+</tr>
+<tr class="odd">
+<td align="right">139</td>
+<td align="left">not_rainy_or_snowy</td>
+</tr>
+<tr class="even">
+<td align="right">164</td>
+<td align="left">not_rainy_or_snowy</td>
+</tr>
+</tbody>
+</table>
+<p>We then conducted one-way ANOVA to test if the true mean daily crime
+cases of different weather is the same.</p>
+<p><span class="math inline">\(H_0\)</span>: There is no difference in
+the average number of crimes per day under different weather conditions
+in New York.</p>
+<p><span class="math inline">\(H_1\)</span>: At least the average number
+of crimes per day under two different weather conditions are
+different.</p>
+<p>First, Let’s create box-plot of our data.</p>
+<pre class="r"><code>ggplot(data = crime_weather_2, aes(x = weather, y = total_crime, fill = weather)) + geom_boxplot()</code></pre>
+<p><img src="statistical-test_files/figure-html/unnamed-chunk-6-1.png" width="768" /></p>
+<p>From the plot, the distribution of daily crime number seems different
+in different weather.</p>
+<p>And we conducted a ANOVA test</p>
+<pre class="r"><code>res.aov &lt;- aov(total_crime ~ weather, data = crime_weather_2)
+summary(res.aov) </code></pre>
+<pre><code>##              Df Sum Sq Mean Sq F value   Pr(&gt;F)    
+## weather       3  31642   10547   14.46 3.72e-09 ***
+## Residuals   727 530437     730                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>From the result, the p-value is smaller than 0.05, therefore we
+concluded that the average number of crimes per day is correlated to
+weather.</p>
 </div>
 
 
