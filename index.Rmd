@@ -1,0 +1,35 @@
+---
+title: "Weather/Time and Crime: what makes us lose control?"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+---
+
+# Introduction
+
+![](https://assets1.cbsnewsstatic.com/hub/i/2012/07/06/b8381864-a644-11e2-a3f0-029118418759/1140408.jpg)
+
+Based on the Lombroso's Theory of Crime, natural climatic factors can influence crime rates. The Extreme temperatures sap one's energy and reduce the passion for crime. The suitable temperatures stimulate one's nerve like alcohol and makes it easier to commit criminal acts in an excited situation.
+
+In fact, the weather in criminology covers many aspects. Apart from the weather itself, it also involves the seasons as well as the temperature. All of these natural events occur in the spatial and temporal dimensions and recur with regularity from year to year constitutes a season. In order to fully discuss the changes of crime rates in the time dimension, we also consider the changes in crime rates at different times of the day and on different days of the week.
+
+
+# Dataset
+
+# Methods
+
+# Website Overview
+
+Temperature, EDA
+
+Shiny
+
+Model
+
+Map
+
+# Results
+
+# Discussion
