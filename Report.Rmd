@@ -1,0 +1,26 @@
+---
+title: "Report"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Motivation
+
+## Related Work
+
+## Initial Questions
+
+## Data
+
+Source
+
+Scraping method
+
+Cleaning
+
+## Exploratory Analysis
+
+## Discussion
+
