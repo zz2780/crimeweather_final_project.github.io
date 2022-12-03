@@ -14,7 +14,16 @@ library(readr)
 library(tidyverse)
 library(plotly)
 
-crime_df <- read.csv("data/crime_df.csv")
+crime_df <- read.csv("data/crime_df.csv")%>%
+  mutate(
+    season=case_when(
+      mon %in% c(6,7,8)~"Summer",
+      mon %in% c(9,10,11)~"Fall",
+      mon %in% c(12,1,2)~"Winter",
+      mon %in% c(3,4,5)~"Spring",
+      )
+    
+  )
 ```
 
 Column {.sidebar}
@@ -38,13 +47,20 @@ sliderInput(
   label = h3("Choose hour of the day"), 
   min = min_hour, max = max_hour, value = c(17, 18))
 
-crime_level = crime_df %>% distinct(level) %>% pull()
+day_week = crime_df %>% distinct(day_of_week) %>% pull()
 
 # radioButtons widget
 radioButtons(
-  "crime_level", 
-  label = h3("Choose level of crime"),
-  choices = crime_level, selected = "FELONY")
+  "day_of_week_choice", 
+  label = h3("Choose day of the week"),
+  choices = day_week, selected = "Sunday")
+
+season_choice = crime_df %>% distinct(season) %>% pull()
+# radioButtons widget
+radioButtons(
+  "season_choice", 
+  label = h3("Choose season of the year"),
+  choices = season_choice, selected = "Spring")
 ```
 
 Column
@@ -58,13 +74,13 @@ renderPlotly({
     filter(
     borough == input$boro_choice, 
     hour_of_day %in% input$hour_of_day_choice[1]:input$hour_of_day_choice[2],
-    level == input$crime_level) %>%
-  group_by(borough, hour_of_day, level)%>%
+    day_of_week == input$day_of_week_choice,
+    season==input$season_choice) %>%
+  group_by(borough, hour_of_day, day_of_week,season)%>%
   count(offense, name = "offense_total") %>%
   arrange(desc(offense_total)) %>%
-  filter(offense_total > 10) %>%
   plot_ly(
-    x = ~offense_total, y = ~reorder(offense, offense_total), type = "bar", color = ~level)%>%
+    x = ~offense_total, y = ~reorder(offense, offense_total), type = "bar")%>%
     layout( xaxis = list(title = ""),
          yaxis = list(title = ""))
 })
