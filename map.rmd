@@ -1,0 +1,43 @@
+---
+title: "Crime map"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    theme: cosmo
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(plotly)
+
+knitr::opts_chunk$set(
+  fig.width = 10,
+  fig.asp = .2,
+  out.width = "90%",
+  dpi = 300
+)
+```
+
+```{r, message=FALSE, warning=FALSE}
+crime_df = read_csv("data/crime_df.csv")
+```
+
+```{r, message=FALSE}
+crime_plot =
+  crime_df %>% 
+  plot_ly(
+    lat = ~latitude, 
+    lon = ~longitude, 
+    type = "scattermapbox", 
+    mode = "markers", 
+    alpha = 0.2,
+    color = ~borough) %>% 
+  layout(
+    mapbox = list(
+      style = 'carto-positron',
+      zoom = 9,
+      center = list(lon = -73.9, lat = 40.7)))
+crime_plot
+```
