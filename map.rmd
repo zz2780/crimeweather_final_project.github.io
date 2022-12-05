@@ -30,6 +30,7 @@ crime_plot =
   plot_ly(
     lat = ~latitude, 
     lon = ~longitude, 
+    frame = ~hour_of_day,
     type = "scattermapbox", 
     mode = "markers", 
     alpha = 0.2,
