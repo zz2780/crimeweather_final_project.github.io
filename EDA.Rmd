@@ -314,7 +314,5 @@ hotcrime = offense_type %>%
     facet_wrap(~offense)
 
 hotcrime
-
-  
   
 ```
