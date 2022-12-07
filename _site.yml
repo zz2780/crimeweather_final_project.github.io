@@ -4,17 +4,15 @@ navbar:
   title: "Home"
   right:
     - text: "Data"
-      href: Clean-data.html 
+      href: Clean-data.html
     - text: "Report"
       href: Report.html
-    - text: "Visualizations"
-      href: 
-    - text: "Analysis"
-      menu:
-        - text : "Statistical Test"
-          href: statistical-test.html
-        - text: "Modeling"
-          href: Modeling.html
+    - text: "Shiny"
+      href: https://zz2780.shinyapps.io/shiny_dashboard/?_ga=2.29643064.641722041.1670377109-1574925733.1669738083
+    - text : "Statistical Test"
+      href: statistical-test.html
+    - text: "Modeling"
+      href: Modeling.html
     - text: "Interactive Map"
       href: map.html
     - icon: fa-github fa-lg
