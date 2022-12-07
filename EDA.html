@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+<meta name="date" content="2022-12-01" />
+
+<title>EDA</title>
+
+<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Home</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="Clean-data.html">Data</a>
+</li>
+<li>
+  <a href="statistical-test.html">Statistical Test</a>
+</li>
+<li>
+  <a href="Modeling.html">Modeling</a>
+</li>
+<li>
+  <a href="Report.html">Report</a>
+</li>
+<li>
+  <a href="map.html">Interactive Map</a>
+</li>
+<li>
+  <a href="https://zz2780.shinyapps.io/shiny_dashboard/?_ga=2.29643064.641722041.1670377109-1574925733.1669738083">Shiny</a>
+</li>
+<li>
+  <a href="https://github.com/zz2780/crimeweather_final_project.github.io">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="mailto:&lt;hw2861@cumc.columbia.edu&gt;">
+    <span class="fa fa-envelope fa-lg"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://spotcrime.com">
+    <span class="fa fa-solid fa-bell"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">EDA</h1>
+<h4 class="date">2022-12-01</h4>
+
+</div>
+
+
+<div id="r-markdown" class="section level2">
+<h2>R Markdown</h2>
+<pre class="r"><code>crime_raw &lt;- read.csv(&quot;data/nyc_complaint_data.csv&quot;)
+
+crime_df &lt;- crime_raw %&gt;%
+  janitor::clean_names() %&gt;%
+  mutate(
+    date = mdy(cmplnt_fr_dt),
+    hour_of_day = as.POSIXct(cmplnt_fr_tm, format=&quot;%H:%M:%OS&quot;),
+    borough = boro_nm,
+    level = law_cat_cd,
+    offense = ofns_desc,
+    offense_classification = pd_desc,
+    place = prem_typ_desc,
+    suspect_age = susp_age_group,
+    suspect_race = factor(susp_race),
+    suspect_sex = factor(recode(susp_sex, &quot;U&quot; = &quot;Unkonwn&quot;, &quot;F&quot; = &quot;Female&quot;, &quot;M&quot; = &quot;Male&quot;)),
+    victim_age = vic_age_group,
+    victim_race = factor(vic_race),
+    victim_sex = factor(recode(vic_sex, &quot;F&quot; = &quot;Female&quot;, &quot;M&quot; = &quot;Male&quot;, &quot;D&quot; = &quot;Business/Organization&quot;, &quot;E&quot; = &quot;PSNY/People of the State of New York&quot;))) %&gt;%
+  mutate(
+    day_of_week = factor(weekdays(date)),
+    mon = month(date),
+    hour_of_day = hour(hour_of_day)
+  )
+
+
+crime_df = crime_df %&gt;%
+ select(date:mon, latitude,longitude)
+
+weather = rnoaa::meteo_pull_monitors(
+    c(&quot;USW00094728&quot;, &quot;USW00094789&quot;, &quot;USW00014732&quot;),
+    var = c(&quot;PRCP&quot;, &quot;SNOW&quot;, &quot;SNWD&quot;, &quot;TMAX&quot;, &quot;TMIN&quot;),
+    date_min = &quot;2016-01-01&quot;,
+    date_max = &quot;2017-12-31&quot;) %&gt;%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = &quot;CentralPark_NY&quot;, 
+      USW00094789 = &quot;JFK Airport_NY&quot;,
+      USW00014732 = &quot;La Guardia_NY&quot;),
+    
+    tmin = tmin / 10,
+    tmax = tmax / 10) %&gt;%
+  select(name, id, everything())
+
+average_weather = weather %&gt;% 
+  group_by(date) %&gt;%
+  summarise(
+    mean_snow = mean(snwd),
+    mean_prcp = mean(prcp),
+    mean_tmin = mean(tmin),
+    mean_tmax = mean(tmax)
+  )
+
+new_crime_df = crime_df %&gt;%
+  group_by(date,mon,day_of_week)%&gt;%
+  summarize(
+    total_crime = n(),
+    ) </code></pre>
+</div>
+<div id="some-exploration" class="section level2">
+<h2>Some exploration</h2>
+<pre class="r"><code>crime_weather = merge(new_crime_df, average_weather, by = &quot;date&quot;)
+
+crime_weather1 = crime_weather %&gt;% 
+  select(date, total_crime, mean_tmin, mean_snow, mean_prcp) %&gt;%
+  gather(key = &quot;variable&quot;, value = &quot;value&quot;, -date)
+
+crime_weather_plot = ggplot(crime_weather1, aes(x = date, y = value)) + 
+  geom_line(aes(color = variable, linetype = variable)) + 
+  scale_color_manual(values = c(&quot;wheat3&quot;, &quot;seagreen3&quot;, &quot;orangered1&quot;, &quot;steelblue&quot;)) + 
+  labs(x=&quot;Date&quot;, 
+       y=&quot;Number of Crimes /Max Temperature/
+       Mean Snow/Precipitation&quot;,
+       title = &quot;Total Number of Crimes and Mean Snow, Mean Precipitation, 
+       Max Temparature In 2016 &amp; 2017&quot;) + 
+  theme(legend.position = &quot;bottom&quot;, plot.title=element_text(hjust=0.5))
+
+crime_weather_plot</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-2-1.png" width="768" /></p>
+<pre class="r"><code># Crime numbers by month
+
+crime_month = new_crime_df %&gt;% 
+    group_by(month = lubridate::floor_date(date, &#39;month&#39;)) %&gt;%
+    summarize(sum_of_crimes = sum(total_crime)) %&gt;% 
+  mutate(MonthName = as.character(month(month, label = TRUE, abbr = FALSE))) %&gt;% 
+  group_by(MonthName) %&gt;%
+  summarize(mean_total_crimes = mean(sum_of_crimes)) %&gt;% 
+  mutate(char = case_when(MonthName == &quot;January&quot; ~ 01, 
+                          MonthName == &quot;February&quot; ~ 02,
+                          MonthName == &quot;March&quot; ~ 03, 
+                          MonthName == &quot;April&quot; ~ 04,
+                          MonthName == &quot;May&quot; ~ 05,
+                          MonthName == &quot;June&quot; ~ 06,
+                          MonthName == &quot;July&quot; ~ 07,
+                          MonthName == &quot;August&quot; ~ 08,
+                          MonthName == &quot;September&quot; ~ 09,
+                          MonthName == &quot;October&quot; ~ 10,
+                          MonthName == &quot;November&quot; ~ 11,
+                          MonthName == &quot;December&quot; ~ 12)) %&gt;%
+  arrange(char) %&gt;% select(-MonthName) %&gt;% 
+  rename(month = char) %&gt;% mutate(month = as.character(month))
+
+
+mp = ggplot(crime_month,
+       aes(x = month, y = mean_total_crimes, fill = month)) +
+  geom_col(fill = &quot;lightblue&quot;,colour = &quot;steelblue&quot;) +
+  geom_text(aes(label = mean_total_crimes), vjust = -0.5) + 
+  labs(x=&quot;Month&quot;, 
+       y=&quot;Number of Crimes&quot;,
+       title = &quot;Average Total Number of Crimes 
+       By Month In 2016 &amp; 2017&quot;) +
+  scale_x_discrete(limits=crime_month$month) +
+  theme_bw() +
+  theme(legend.position = &quot;off&quot;, plot.title=element_text(hjust=0.5))
+
+mp</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
+<pre class="r"><code>#Crime and weekdays
+
+crime_weekday = new_crime_df %&gt;% 
+  group_by(day_of_week) %&gt;% 
+  summarise(mean_crime = mean(total_crime)) %&gt;% 
+  mutate(char = case_when(day_of_week == &quot;Monday&quot; ~ 01, 
+                          day_of_week == &quot;Tuesday&quot; ~ 02,
+                          day_of_week == &quot;Wednesday&quot; ~ 03, 
+                          day_of_week == &quot;Thursday&quot; ~ 04,
+                          day_of_week == &quot;Friday&quot; ~ 05,
+                          day_of_week == &quot;Saturday&quot; ~ 06,
+                          day_of_week == &quot;Sunday&quot; ~ 07)) %&gt;%
+  arrange(char) %&gt;% select(-char)
+
+weekday = ggplot(crime_weekday,
+       aes(x = day_of_week, y = mean_crime, fill = day_of_week, alpha=0.2)) +
+  geom_col() +
+  geom_text(aes(label = mean_crime), vjust = -0.5) + 
+  labs(x=&quot;Day of Week&quot;, 
+       y=&quot;Number of Crimes&quot;,
+       title = &quot;Average Total Number of Crimes
+       Each Week In 2016 &amp; 2017&quot;) +
+  scale_x_discrete(limits=crime_weekday$day_of_week) +
+  theme_bw() +
+  theme(legend.position = &quot;off&quot;, plot.title=element_text(hjust=0.5))
+  
+weekday</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-4-1.png" width="768" /></p>
+<pre class="r"><code>#Crime and hours
+
+crime_hour = crime_df %&gt;%
+  group_by(date,mon,day_of_week, hour_of_day)%&gt;%
+  summarize(
+    total_crime = n(),
+    ) %&gt;%
+  group_by(hour_of_day) %&gt;% 
+  summarize(mean_crime = mean(total_crime))
+
+crime_hour_plot = ggplot(crime_hour,
+       aes(x = hour_of_day, y = mean_crime, fill = hour_of_day, alpha=0.2)) +
+  geom_col(fill = &quot;plum4&quot;, colour = &quot;powderblue&quot;) +
+  labs(x=&quot;Hour of Day&quot;, 
+       y=&quot;Average Number of Crimes&quot;,
+       title = &quot;Average Total Number of Crimes In 24 Hours
+        Per Day In 2016 &amp; 2017&quot;) +
+  scale_x_discrete(limits=crime_hour$hour_of_day) +
+  theme_bw() +
+  theme(legend.position = &quot;off&quot;, plot.title=element_text(hjust=0.5))
+  
+crime_hour_plot</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-4-2.png" width="768" /></p>
+<pre class="r"><code>#Histogram of crimes in 5 boroughs
+
+his1 = crime_df %&gt;% 
+  mutate(borough = fct_reorder(borough, mon)) %&gt;%
+  ggplot(aes(x=mon, color=borough, fill=borough)) +
+    geom_histogram(alpha=0.6, binwidth = 1, bins = 12, stat= &quot;count&quot;) +
+  scale_x_continuous(breaks=1:12) +
+  labs(y=&quot;Count&quot;, 
+       x=&quot;Month&quot;,
+       title = &quot;Distribution of Crimes in Each Borough of NYC Across 12 Months&quot;) +
+    theme(legend.position=&quot;bottom&quot;,
+      panel.spacing = unit(0.1, &quot;lines&quot;),
+      strip.text.x = element_text(size = 8),
+      plot.title=element_text(hjust=0.5)
+      ) +
+    facet_wrap(~borough)
+
+his1</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-5-1.png" width="768" /></p>
+<pre class="r"><code>his2 = crime_df %&gt;% 
+  mutate(borough = fct_reorder(borough, hour_of_day)) %&gt;%
+  ggplot(aes(x=hour_of_day, color=borough, fill=borough)) +
+    geom_histogram(alpha=0.6, binwidth = 1, bins = 24, stat= &quot;count&quot;) +
+  scale_x_continuous(breaks=0:23) +
+  labs(y=&quot;Count&quot;, 
+       x=&quot;Hour of Day&quot;,
+       title = &quot;Distribution of Crimes in Each Borough of NYC in 24 Hours&quot;) +
+    theme(legend.position=&quot;bottom&quot;,
+      panel.spacing = unit(0.1, &quot;lines&quot;),
+      strip.text.x = element_text(size = 8),
+      plot.title=element_text(hjust=0.5)
+      ) +
+    facet_wrap(~borough)
+
+his2</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-5-2.png" width="768" /></p>
+<pre class="r"><code>#Level of Crimes and Distribution in Borough
+
+his3 = crime_df %&gt;% 
+  mutate(borough = fct_reorder(borough, level)) %&gt;%
+  ggplot(aes(x=level, color=borough, fill=borough)) +
+    geom_histogram(alpha=0.6, binwidth = 1, stat= &quot;count&quot;) +
+  labs(y=&quot;Count&quot;, 
+       x=&quot;Level of Crime&quot;,
+       title = &quot;Level and Distribution of Crimes in Each Borough of NYC&quot;) +
+    theme(legend.position=&quot;bottom&quot;,
+      panel.spacing = unit(0.1, &quot;lines&quot;),
+      strip.text.x = element_text(size = 8),
+      plot.title=element_text(hjust=0.5)
+      ) +
+    facet_wrap(~borough)
+
+his3</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-5-3.png" width="768" /></p>
+<pre class="r"><code>offense_type = crime_df %&gt;%
+  filter(offense == &#39;PETIT LARCENY&#39;| offense == &#39;HARRASSMENT 2&#39;| offense == &#39;ASSAULT 3 &amp; RELATED OFFENSES&#39;)
+
+
+his4 = offense_type %&gt;%
+  mutate(offense = fct_reorder(offense, borough)) %&gt;%
+  ggplot(aes(x=borough, color=offense, fill=offense)) +
+    geom_histogram(alpha=0.6, binwidth = 1, stat= &quot;count&quot;) +
+  labs(y=&quot;Count&quot;, 
+       x=&quot;Borough&quot;,
+       title = &quot;Distribution of Top 3 Offenses in NYC Boroughs&quot;) +
+    theme(legend.position=&quot;bottom&quot;,
+      panel.spacing = unit(0.1, &quot;lines&quot;),
+      strip.text.x = element_text(size = 8),
+      plot.title=element_text(hjust=0.5)
+      ) +
+    facet_wrap(~offense)
+
+his4</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-5-4.png" width="768" /></p>
+<pre class="r"><code>hotmonth = weather %&gt;%
+  group_by(month = lubridate::floor_date(date, &#39;month&#39;)) %&gt;% 
+  mutate(month = as.numeric(month(month, label = TRUE, abbr = FALSE))) %&gt;% 
+  summarise(mean_tmax=mean(tmax)) %&gt;% 
+  arrange(mean_tmax)
+
+#Months with highest temp: 7, 8
+#Relate temperature to offense types
+hotcrime = offense_type %&gt;% 
+  filter(mon == 7 | mon == 8) %&gt;% 
+  mutate(offense = fct_reorder(offense, hour_of_day)) %&gt;%
+  ggplot(aes(x=hour_of_day, color=offense, fill=offense)) +
+    geom_histogram(alpha=0.6, binwidth = 1, bins = 24, stat= &quot;count&quot;) +
+  scale_x_continuous(breaks=0:23) +
+  labs(y=&quot;Count&quot;, 
+       x=&quot;Hour of Day&quot;,
+       title = &quot;Occurrence of Top 3 Offenses in 24 Hour Time Frame
+       During July and August (temperature &gt; 29°C)&quot;) +
+    theme(legend.position=&quot;bottom&quot;,
+      panel.spacing = unit(0.1, &quot;lines&quot;),
+      strip.text.x = element_text(size = 8),
+      plot.title=element_text(hjust=0.5)
+      ) +
+    facet_wrap(~offense)
+
+hotcrime</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-5-5.png" width="768" /></p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
