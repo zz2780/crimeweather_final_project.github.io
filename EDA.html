@@ -390,39 +390,23 @@ crime_weather_plot</code></pre>
 <pre class="r"><code># Crime numbers by month
 
 crime_month = new_crime_df %&gt;% 
-    group_by(month = lubridate::floor_date(date, &#39;month&#39;)) %&gt;%
-    summarize(sum_of_crimes = sum(total_crime)) %&gt;% 
-  mutate(MonthName = as.character(month(month, label = TRUE, abbr = FALSE))) %&gt;% 
-  group_by(MonthName) %&gt;%
-  summarize(mean_total_crimes = mean(sum_of_crimes)) %&gt;% 
-  mutate(char = case_when(MonthName == &quot;January&quot; ~ 01, 
-                          MonthName == &quot;February&quot; ~ 02,
-                          MonthName == &quot;March&quot; ~ 03, 
-                          MonthName == &quot;April&quot; ~ 04,
-                          MonthName == &quot;May&quot; ~ 05,
-                          MonthName == &quot;June&quot; ~ 06,
-                          MonthName == &quot;July&quot; ~ 07,
-                          MonthName == &quot;August&quot; ~ 08,
-                          MonthName == &quot;September&quot; ~ 09,
-                          MonthName == &quot;October&quot; ~ 10,
-                          MonthName == &quot;November&quot; ~ 11,
-                          MonthName == &quot;December&quot; ~ 12)) %&gt;%
-  arrange(char) %&gt;% select(-MonthName) %&gt;% 
-  rename(month = char) %&gt;% mutate(month = as.character(month))
-
-
+     group_by(mon) %&gt;%
+     summarize(mean_total_crimes = mean(total_crime)) %&gt;%
+                 rename(month = mon) %&gt;% 
+                 mutate(month = as.character(month))
+ 
 mp = ggplot(crime_month,
-       aes(x = month, y = mean_total_crimes, fill = month)) +
-  geom_col(fill = &quot;lightblue&quot;,colour = &quot;steelblue&quot;) +
-  geom_text(aes(label = mean_total_crimes), vjust = -0.5) + 
-  labs(x=&quot;Month&quot;, 
-       y=&quot;Number of Crimes&quot;,
-       title = &quot;Average Total Number of Crimes 
-       By Month In 2016 &amp; 2017&quot;) +
-  scale_x_discrete(limits=crime_month$month) +
-  theme_bw() +
-  theme(legend.position = &quot;off&quot;, plot.title=element_text(hjust=0.5))
-
+        aes(x = month, y = mean_total_crimes, fill = month)) +
+   geom_col(fill = &quot;lightblue&quot;,colour = &quot;steelblue&quot;) +
+   geom_text(aes(label = round(mean_total_crimes)), vjust = -0.5, size=3 ) +
+   labs(x=&quot;Month&quot;, 
+        y=&quot;Number of Crimes&quot;,
+        title = &quot;Average Total Number of Crimes 
+        By Month In 2016 &amp; 2017&quot;)+
+   scale_x_discrete(limits=crime_month$month)+
+   theme_bw()+
+   theme(legend.position = &quot;off&quot;, plot.title=element_text(hjust=0.5))
+ 
 mp</code></pre>
 <p><img src="EDA_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
 <pre class="r"><code>#Crime and weekdays
@@ -577,6 +561,60 @@ hotcrime = offense_type %&gt;%
 
 hotcrime</code></pre>
 <p><img src="EDA_files/figure-html/unnamed-chunk-5-5.png" width="768" /></p>
+<pre class="r"><code>#distribution of high mean temp (tmax &gt; mean(mean_tmax)) and total crime per day
+hightempcrime =  crime_weather %&gt;% 
+  filter(mean_tmax &gt; mean(mean_tmax)) %&gt;% 
+  select(date, day_of_week, total_crime, mean_tmax) %&gt;% 
+  mutate(mean_tmax = as.numeric(mean_tmax))
+
+h1 = ggplot(hightempcrime, aes(x = mean_tmax, y = total_crime, color = day_of_week)) + 
+  geom_point(alpha = .5,position= &quot;jitter&quot;) +
+  facet_grid(. ~ day_of_week)
+h1</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-6-1.png" width="768" /></p>
+<pre class="r"><code># Examine whether high mean temp has something to do with more crime occurrence (when crime &gt; mean(crime) per day)
+
+highcrime = hightempcrime %&gt;% 
+  filter(total_crime &gt; mean(total_crime)) %&gt;% 
+  mutate(class_hightemp =
+                     case_when(mean_tmax &lt;= 20 ~ &quot;ok (under or equal to 20°C)&quot;, 
+                               mean_tmax &lt;= 25 ~ &quot;warm (under or equal to 25°C)&quot;,
+                               mean_tmax &lt;= 30 ~ &quot;hot (under or equal to 30°C)&quot;,
+                               mean_tmax &gt; 30 ~ &quot;very hot (above 30°C)&quot;)) %&gt;% 
+  group_by(class_hightemp) %&gt;% # Variable to be transformed
+  count() %&gt;% 
+  ungroup() %&gt;% 
+  mutate(perc = `n` / sum(`n`)) %&gt;% 
+  arrange(perc) %&gt;%
+  mutate(labels = scales::percent(perc))
+  
+
+h2 = ggplot(highcrime, aes(x = &quot;&quot;, y = perc, fill = class_hightemp)) +
+  geom_col() +
+  geom_text(aes(label = labels),
+            position = position_stack(vjust = 0.5)) + 
+  coord_polar(theta = &quot;y&quot;) + 
+  labs(
+    x = &quot;Percentage of total crimes per day (above the average)&quot;,
+    y = &quot;Different temperature categories&quot;, 
+    title = &quot;Percentage of total crimes per day in 4 high temperature categories&quot;
+  )
+
+h2</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-6-2.png" width="768" /></p>
+<pre class="r"><code># Examine whether total crime number per day (above average) has something to do with day of week
+#boxplot,y=total_crime
+h3 = ggplot(hightempcrime, aes(x = day_of_week, y = total_crime)) + 
+  geom_boxplot()+ 
+  geom_jitter(shape=16, position=position_jitter(0.2)) +
+  labs(
+    x = &quot;Day of Week&quot;,
+    y = &quot;Total Crimes In a Day (above average)&quot;, 
+    title = &quot;Distribution of Above Average Total Crimes Per Day in a Week&quot;
+  )
+
+h3</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-6-3.png" width="768" /></p>
 </div>
 
 
