@@ -14,7 +14,7 @@ navbar:
     - text: "Modeling"
       href: Modeling.html
     - text: "Interactive Map"
-      href: 
+      href: map.html
     - icon: fa-github fa-lg
       href: https://github.com/zz2780/crimeweather_final_project.github.io
     - icon: fa-envelope fa-lg
