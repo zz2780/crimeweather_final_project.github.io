@@ -8,11 +8,11 @@ output:
     theme: journal
 ---
 
-In some articles, we knew that weather affect crime rate. 
+Based on some publicly available information, we knew that weather affect crime rate. 
 For example, the hotter the weather is, the more likely people are to commit crimes. 
 The worse the weather is, the less likely people are to go out and commit crimes. 
-Here we want to predict number of crimes each day in New York as our outcome and precipitation, 
-snow depth, maximum temperature and minimum temperature as predictors.
+Here we want to predict number of crimes each day in New York as our outcome. And the precipitation, 
+snow depth, maximum temperature and minimum temperature can be considered as predictors.
 
 
 ```{r, include=FALSE}
@@ -62,22 +62,43 @@ crime_weather <- crime_weather %>%
   )
 ```
 
-First, let's check the distribution of number of crime cases each day in New York 
+First, let's check the distribution of number of crime cases each day in New York.
+
 ```{r}
-ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()
+ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()+ 
+  labs(title = "The distribution of daily cases", 
+       y = "Counts", 
+       x = "Number of crimes per day")+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
-From the distribution of daily cases, we noticed that it is approximately normally 
-distributed, therefore we don't need to transform the value of the outcome.
 
-First we use scatter plot to investigate the association between weather and cases
-and crime 
+From the distribution of daily cases, we noticed that it is approximately normally distributed, therefore we don't need to transform the value of the outcome.
 
 
+Then, we use scatter plot to investigate the association between weather and cases/crime.
 ```{r}
-ggplot(crime_weather, aes(x = mean_tmax, y = total_crime)) + geom_point() 
-ggplot(crime_weather, aes(x = mean_tmin, y = total_crime)) + geom_point() 
-ggplot(crime_weather, aes(x = mean_prcp, y = total_crime)) + geom_point() 
-ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()
+ggplot(crime_weather, aes(x = mean_tmax, y = total_crime)) + geom_point()+    labs(title = "The Association between Max temperatures and reported crime", 
+       y = "Total Crime reported", 
+       x = "Max temperatures of a day")+
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+ggplot(crime_weather, aes(x = mean_tmin, y = total_crime)) + geom_point()+    labs(title = "The Association between Min temperatures and reported crime", 
+       y = "Total Crime reported", 
+       x = "Min temperatures of a day")+
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+ggplot(crime_weather, aes(x = mean_prcp, y = total_crime)) + geom_point()+    labs(title = "The Association between precipitation and reported crime",
+       y = "Total Crime reported", 
+       x = "Precipitation(tenths of mm)")+
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()+    labs(title = "The Association between snowfall and reported crime",
+       y = "Total Crime reported", 
+       x = "Snow depth(mm)")+
+    theme(plot.title = element_text(hjust = 0.5))
 ```
  
 From the plots, we noticed that all of the four predictors may have association 
@@ -85,7 +106,6 @@ with the number of cases of crime in New York, So I proposed the following model
 We also want to investigate whether the month and day of week can be predictors.
 
 ## Fitting Model
- 
 Firstly, I use month, weekdays and all weather data as predictors
 ```{r}
 full_model = lm(total_crime ~ month + day_of_week + mean_tmin + mean_tmax + mean_prcp + mean_snow, data = crime_weather)
@@ -203,5 +223,7 @@ plot(model3)
 
 
 
- Model3's root means square error is the smallest in the four models, which may indicates it is the best model in the four models. We then did a model diagnostic to check if the model assumptions. Although there are some outliers as shown in the plots, the Q-Q plot, residuals VS fitted plot and Scale-Location plot indicates the residuals are normally distributed and variance of residuals is constant. Therefore, model3 could be useful for predicting the total number of crime cases each day in New York, which means month, day of week, temperature, precipitation , snow depth and a interaction term between day of week and temperature are all useful predictors if we want to predict the number of crime cases on a specific day in New York.
+Model3's root means square error is the smallest in the four models, which may indicates it is the best model in the four models. 
+
+We then did a model diagnostic to check if the model assumptions. Although there are some outliers as shown in the plots, the Q-Q plot, residuals VS fitted plot and Scale-Location plot indicates the residuals are normally distributed and variance of residuals is constant. Therefore, model3 could be useful for predicting the total number of crime cases each day in New York, which means month, day of week, temperature, precipitation , snow depth and a interaction term between day of week and temperature are all useful predictors if we want to predict the number of crime cases on a specific day in New York.
 

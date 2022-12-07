@@ -392,28 +392,45 @@ div.tocify {
 </div>
 
 
-<p>In some articles, we knew that weather affect crime rate. For
-example, the hotter the weather is, the more likely people are to commit
-crimes. The worse the weather is, the less likely people are to go out
-and commit crimes. Here we want to predict number of crimes each day in
-New York as our outcome and precipitation, snow depth, maximum
-temperature and minimum temperature as predictors.</p>
+<p>Based on some publicly available information, we knew that weather
+affect crime rate. For example, the hotter the weather is, the more
+likely people are to commit crimes. The worse the weather is, the less
+likely people are to go out and commit crimes. Here we want to predict
+number of crimes each day in New York as our outcome. And the
+precipitation, snow depth, maximum temperature and minimum temperature
+can be considered as predictors.</p>
 <p>First, let’s check the distribution of number of crime cases each day
-in New York</p>
-<pre class="r"><code>ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()</code></pre>
-<p><img src="Modeling_files/figure-html/unnamed-chunk-3-1.png" width="768" />
-From the distribution of daily cases, we noticed that it is
+in New York.</p>
+<pre class="r"><code>ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()+ 
+  labs(title = &quot;The distribution of daily cases&quot;, 
+       y = &quot;Counts&quot;, 
+       x = &quot;Number of crimes per day&quot;)+
+  theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="Modeling_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
+<p>From the distribution of daily cases, we noticed that it is
 approximately normally distributed, therefore we don’t need to transform
 the value of the outcome.</p>
-<p>First we use scatter plot to investigate the association between
-weather and cases and crime</p>
-<pre class="r"><code>ggplot(crime_weather, aes(x = mean_tmax, y = total_crime)) + geom_point() </code></pre>
+<p>Then, we use scatter plot to investigate the association between
+weather and cases/crime.</p>
+<pre class="r"><code>ggplot(crime_weather, aes(x = mean_tmax, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between Max temperatures and reported crime&quot;, 
+       y = &quot;Total Crime reported&quot;, 
+       x = &quot;Max temperatures of a day&quot;)+
+    theme(plot.title = element_text(hjust = 0.5))</code></pre>
 <p><img src="Modeling_files/figure-html/unnamed-chunk-4-1.png" width="768" /></p>
-<pre class="r"><code>ggplot(crime_weather, aes(x = mean_tmin, y = total_crime)) + geom_point() </code></pre>
+<pre class="r"><code>ggplot(crime_weather, aes(x = mean_tmin, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between Min temperatures and reported crime&quot;, 
+       y = &quot;Total Crime reported&quot;, 
+       x = &quot;Min temperatures of a day&quot;)+
+    theme(plot.title = element_text(hjust = 0.5))</code></pre>
 <p><img src="Modeling_files/figure-html/unnamed-chunk-4-2.png" width="768" /></p>
-<pre class="r"><code>ggplot(crime_weather, aes(x = mean_prcp, y = total_crime)) + geom_point() </code></pre>
+<pre class="r"><code>ggplot(crime_weather, aes(x = mean_prcp, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between precipitation and reported crime&quot;,
+       y = &quot;Total Crime reported&quot;, 
+       x = &quot;Precipitation(tenths of mm)&quot;)+
+    theme(plot.title = element_text(hjust = 0.5))</code></pre>
 <p><img src="Modeling_files/figure-html/unnamed-chunk-4-3.png" width="768" /></p>
-<pre class="r"><code>ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()</code></pre>
+<pre class="r"><code>ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between snowfall and reported crime&quot;,
+       y = &quot;Total Crime reported&quot;, 
+       x = &quot;Snow depth(mm)&quot;)+
+    theme(plot.title = element_text(hjust = 0.5))</code></pre>
 <p><img src="Modeling_files/figure-html/unnamed-chunk-4-4.png" width="768" /></p>
 <p>From the plots, we noticed that all of the four predictors may have
 association with the number of cases of crime in New York, So I proposed
@@ -1252,16 +1269,16 @@ models.</p>
 plot(model3)</code></pre>
 <p><img src="Modeling_files/figure-html/unnamed-chunk-14-1.png" width="768" /></p>
 <p>Model3’s root means square error is the smallest in the four models,
-which may indicates it is the best model in the four models. We then did
-a model diagnostic to check if the model assumptions. Although there are
-some outliers as shown in the plots, the Q-Q plot, residuals VS fitted
-plot and Scale-Location plot indicates the residuals are normally
-distributed and variance of residuals is constant. Therefore, model3
-could be useful for predicting the total number of crime cases each day
-in New York, which means month, day of week, temperature, precipitation
-, snow depth and a interaction term between day of week and temperature
-are all useful predictors if we want to predict the number of crime
-cases on a specific day in New York.</p>
+which may indicates it is the best model in the four models.</p>
+<p>We then did a model diagnostic to check if the model assumptions.
+Although there are some outliers as shown in the plots, the Q-Q plot,
+residuals VS fitted plot and Scale-Location plot indicates the residuals
+are normally distributed and variance of residuals is constant.
+Therefore, model3 could be useful for predicting the total number of
+crime cases each day in New York, which means month, day of week,
+temperature, precipitation , snow depth and a interaction term between
+day of week and temperature are all useful predictors if we want to
+predict the number of crime cases on a specific day in New York.</p>
 </div>
 
 
