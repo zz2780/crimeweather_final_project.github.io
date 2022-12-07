@@ -5,6 +5,7 @@ output:
     toc: true
     toc_float: true
     code_folding: hide
+    theme: journal
 ---
 
 ```{r setup, include=FALSE}
@@ -32,7 +33,7 @@ knitr::opts_chunk$set(
 
 This dataset contains 780 million felony, misdemeanor, and violation crimes reported to the New York City Police Department (NYPD) from 1910 to 2021. Each record contains detailed information of a single crime reported to NYPD. In our project, we select the records from 2016-01-01 to 2017-12-31 to do analysis and modeling.
 
-* Weather data is obtained from website of [NOAA](https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.ncdc:C00861/html)
+* Weather data is obtained from website of [NOAA].(https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.ncdc:C00861/html)
 
 
 ```{r}
