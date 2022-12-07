@@ -115,8 +115,17 @@ crime_weather_3 = crime_df %>%
                            mean_prcp == 0 & mean_snow >0 ~ 'snowy',
                            mean_prcp >0 & mean_snow == 0 ~ "rainy")) 
 
-table(crime_weather_3$weather, crime_weather_3$offense) %>%
-  knitr::kable(digits = 1)
+df_crime_weather <- crime_weather_3 %>%
+  group_by(weather, offense) %>%
+  summarise(Total_number_of_offense = n()) %>%
+  pivot_wider(
+    names_from = "weather",
+    values_from = "Total_number_of_offense"
+  ) 
+df_crime_weather[is.na(df_crime_weather)] = 0
+df_crime_weather %>%
+  head(20) %>%
+  knitr::kable(digits = 3)
 ```
 
 ## Chi-squared test on weather and number of different types of offense
