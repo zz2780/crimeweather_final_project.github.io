@@ -166,45 +166,7 @@ ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()+    la
 From the plots, we noticed that all of the four predictors may have association 
 with the number of cases of crime in New York. 
 We also want to investigate whether the month and day of week can be predictors.
-```{r}
-# Crime numbers by month
-
-crime_month = new_crime_df %>% 
-    group_by(mon) %>%
-    summarize(sum_of_crimes = sum(total_crime)) %>% 
-  mutate(MonthName = as.character(month(month, label = TRUE, abbr = FALSE))) %>% 
-  group_by(MonthName) %>%
-  summarize(mean_total_crimes = mean(sum_of_crimes)) %>% 
-  mutate(char = case_when(MonthName == "January" ~ 01, 
-                          MonthName == "February" ~ 02,
-                          MonthName == "March" ~ 03, 
-                          MonthName == "April" ~ 04,
-                          MonthName == "May" ~ 05,
-                          MonthName == "June" ~ 06,
-                          MonthName == "July" ~ 07,
-                          MonthName == "August" ~ 08,
-                          MonthName == "September" ~ 09,
-                          MonthName == "October" ~ 10,
-                          MonthName == "November" ~ 11,
-                          MonthName == "December" ~ 12)) %>%
-  arrange(char) %>% select(-MonthName) %>% 
-  rename(month = char) %>% mutate(month = as.character(month))
-
-
-mp = ggplot(crime_month,
-       aes(x = month, y = mean_total_crimes, fill = month)) +
-  geom_col(fill = "lightblue",colour = "steelblue") +
-  geom_text(aes(label = mean_total_crimes), vjust = -0.5) + 
-  labs(x="Month", 
-       y="Number of Crimes",
-       title = "Average Total Number of Crimes 
-       By Month In 2016 & 2017") +
-  scale_x_discrete(limits=crime_month$month) +
-  theme_bw() +
-  theme(legend.position = "off", plot.title=element_text(hjust=0.5))
-
-mp
-```
+(Beginning of EDA)
 
 
 
