@@ -26,6 +26,7 @@ The [Global Historical Climatology Network ](https://www.ncei.noaa.gov/metadata/
 
 
 # Methods
+The NYPD Compliant Data contains 780 million felony, misdemeanor, and violation crimes reported to the New York City Police Department (NYPD) from 1910 to 2021. Weather data is collected from the website of NOAA using the Global Historical Climatology Network. We selected key variables and renamed them with understandable names for both datasets, then we combined the two datasets based on date. Exploratory analysis was first conducted to investigate if there is an association between crime counts and weather including min/max temperature, precipitation and snowfall. We also conducted statistical tests and final model fitting. Visualization including interactive map and Shiny dashboard is also included in the analysis. Anlyses were conducted in R version 4.2.1.
 
 # Main Results
 

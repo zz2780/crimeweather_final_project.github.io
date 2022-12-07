@@ -1,9 +1,10 @@
 ---
-title: "Shiny Dashboard"
+title: "Crime Dashboard"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
     vertical_layout: fill
+    souce_code: embed
 runtime: shiny
 ---
 

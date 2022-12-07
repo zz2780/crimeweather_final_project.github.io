@@ -4,14 +4,71 @@ output:
   html_document:
     toc: true
     toc_float: true
+    code_folding: hide
     theme: journal
 ---
+```{r, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(modelr)
+library(ggplot2)
+library(viridis)
+library(car)
+library(dplyr)
 
+knitr::opts_chunk$set(
+  fig.height = 6,
+  fig.width = 8,
+  message = F,
+  echo = T,
+  warning = F,
+  cache = F
+)
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis",
+  digits = 3
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+set.seed(1)
+```
+
+```{r include = FALSE}
+crime_df <- read.csv("data/crime_df.csv")
+
+weather <- read.csv("data/weather.csv")
+
+new_crime_df = crime_df %>%
+  group_by(date,mon,day_of_week)%>%
+  summarize(
+    total_crime = n(),
+    ) 
+
+
+crime_weather = merge(new_crime_df, weather, by = "date")
+crime_weather <- crime_weather %>%
+  mutate(
+    month = factor(mon)
+  )
+
+new_crime_df = crime_df %>%
+  group_by(date,mon,day_of_week)%>%
+  summarize(
+    total_crime = n(),
+    ) 
+```
 ## Motivation
+Based on the Lombroso’s Theory of Crime, natural climatic factors can influence crime rates. The Extreme temperatures sap one’s energy and reduce the passion for crime. The suitable temperatures stimulate one’s nerve like alcohol and makes it easier to commit criminal acts in an excited situation.
 
-## Related Work
+In fact, the weather in criminology covers many aspects. Apart from the weather itself, it also involves the seasons as well as the temperature. All of these natural events occur in the spatial and temporal dimensions and recur with regularity from year to year constitutes a season. In order to fully discuss the changes of crime rates in the time dimension, we also consider the changes in crime rates at different times of the day and on different days of the week.
+
 
 ## Initial Questions
+* Is frequency of crimes associated with temperature of the day?
+* Is frequency of crimes associated with precipitation/snowfall of the day?
+* Do different times of the day and days of the week have an impact on the association above?
 
 ## Data
 
@@ -62,6 +119,96 @@ The key variables of weather are:
 
 
 ## Exploratory Analysis
+Based on some publicly available information, we knew that weather affect crime rate. 
+For example, the hotter the weather is, the more likely people are to commit crimes. 
+The worse the weather is, the less likely people are to go out and commit crimes. 
+Here we want to predict number of crimes each day in New York as our outcome. And the precipitation, 
+snow depth, maximum temperature and minimum temperature can be considered as predictors.
+
+We checked the distribution of number of crime cases each day in New York.
+```{r}
+ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()+ 
+  labs(title = "The distribution of daily cases", 
+       y = "Counts", 
+       x = "Number of crimes per day")+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+The distribution of daily cases is approximately normally distributed, thus we do not need to transform the value of the outcome.
+
+Then, we use scatter plot to investigate the association between weather and cases/crime.
+
+```{r}
+ggplot(crime_weather, aes(x = mean_tmax, y = total_crime)) + geom_point()+    labs(title = "The Association between Max temperatures and reported crime", 
+       y = "Total Crime reported", 
+       x = "Max temperatures of a day")+
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+ggplot(crime_weather, aes(x = mean_tmin, y = total_crime)) + geom_point()+    labs(title = "The Association between Min temperatures and reported crime", 
+       y = "Total Crime reported", 
+       x = "Min temperatures of a day")+
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+ggplot(crime_weather, aes(x = mean_prcp, y = total_crime)) + geom_point()+    labs(title = "The Association between precipitation and reported crime",
+       y = "Total Crime reported", 
+       x = "Precipitation(tenths of mm)")+
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()+    labs(title = "The Association between snowfall and reported crime",
+       y = "Total Crime reported", 
+       x = "Snow depth(mm)")+
+    theme(plot.title = element_text(hjust = 0.5))
+```
+ 
+From the plots, we noticed that all of the four predictors may have association 
+with the number of cases of crime in New York. 
+We also want to investigate whether the month and day of week can be predictors.
+```{r}
+# Crime numbers by month
+
+crime_month = new_crime_df %>% 
+    group_by(mon) %>%
+    summarize(sum_of_crimes = sum(total_crime)) %>% 
+  mutate(MonthName = as.character(month(month, label = TRUE, abbr = FALSE))) %>% 
+  group_by(MonthName) %>%
+  summarize(mean_total_crimes = mean(sum_of_crimes)) %>% 
+  mutate(char = case_when(MonthName == "January" ~ 01, 
+                          MonthName == "February" ~ 02,
+                          MonthName == "March" ~ 03, 
+                          MonthName == "April" ~ 04,
+                          MonthName == "May" ~ 05,
+                          MonthName == "June" ~ 06,
+                          MonthName == "July" ~ 07,
+                          MonthName == "August" ~ 08,
+                          MonthName == "September" ~ 09,
+                          MonthName == "October" ~ 10,
+                          MonthName == "November" ~ 11,
+                          MonthName == "December" ~ 12)) %>%
+  arrange(char) %>% select(-MonthName) %>% 
+  rename(month = char) %>% mutate(month = as.character(month))
+
+
+mp = ggplot(crime_month,
+       aes(x = month, y = mean_total_crimes, fill = month)) +
+  geom_col(fill = "lightblue",colour = "steelblue") +
+  geom_text(aes(label = mean_total_crimes), vjust = -0.5) + 
+  labs(x="Month", 
+       y="Number of Crimes",
+       title = "Average Total Number of Crimes 
+       By Month In 2016 & 2017") +
+  scale_x_discrete(limits=crime_month$month) +
+  theme_bw() +
+  theme(legend.position = "off", plot.title=element_text(hjust=0.5))
+
+mp
+```
+
+
+
+
 
 ## Statistical Analysis
 
