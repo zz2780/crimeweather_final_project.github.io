@@ -496,7 +496,7 @@ mp</code></pre>
 
 crime_weekday = new_crime_df %&gt;% 
   group_by(day_of_week) %&gt;% 
-  summarise(mean_crime = mean(total_crime)) %&gt;% 
+  summarise(mean_crime = round(mean(total_crime),0)) %&gt;% 
   mutate(char = case_when(day_of_week == &quot;Monday&quot; ~ 01, 
                           day_of_week == &quot;Tuesday&quot; ~ 02,
                           day_of_week == &quot;Wednesday&quot; ~ 03, 
