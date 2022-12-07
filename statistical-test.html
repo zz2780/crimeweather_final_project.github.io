@@ -506,97 +506,41 @@ to whether the precipitation and rainfall are greater than 0.</p>
                            mean_prcp &gt;0 &amp; mean_snow &gt;0 ~ &#39;rainy_and_snowy&#39;,
                            mean_prcp == 0 &amp; mean_snow &gt;0 ~ &#39;snowy&#39;,
                            mean_prcp &gt;0 &amp; mean_snow == 0 ~ &quot;rainy&quot;)) %&gt;%
-  select(total_crime,  weather)
+  select(date, total_crime,  weather)
+
 crime_weather_2 %&gt;%
-  head(20)%&gt;%
+  group_by(weather)%&gt;%
+  summarise(mean_daily_crime = mean(total_crime),
+  Standard_deviation = sd(total_crime)) %&gt;%
   knitr::kable(digits = 3)</code></pre>
 <table>
 <thead>
 <tr class="header">
-<th align="right">total_crime</th>
 <th align="left">weather</th>
+<th align="right">mean_daily_crime</th>
+<th align="right">Standard_deviation</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="right">347</td>
 <td align="left">not_rainy_or_snowy</td>
+<td align="right">179.685</td>
+<td align="right">27.729</td>
 </tr>
 <tr class="even">
-<td align="right">157</td>
-<td align="left">not_rainy_or_snowy</td>
-</tr>
-<tr class="odd">
-<td align="right">143</td>
-<td align="left">not_rainy_or_snowy</td>
-</tr>
-<tr class="even">
-<td align="right">159</td>
-<td align="left">not_rainy_or_snowy</td>
-</tr>
-<tr class="odd">
-<td align="right">139</td>
-<td align="left">not_rainy_or_snowy</td>
-</tr>
-<tr class="even">
-<td align="right">164</td>
-<td align="left">not_rainy_or_snowy</td>
-</tr>
-<tr class="odd">
-<td align="right">176</td>
-<td align="left">not_rainy_or_snowy</td>
-</tr>
-<tr class="even">
-<td align="right">161</td>
-<td align="left">not_rainy_or_snowy</td>
-</tr>
-<tr class="odd">
-<td align="right">183</td>
 <td align="left">rainy</td>
-</tr>
-<tr class="even">
-<td align="right">134</td>
-<td align="left">rainy</td>
+<td align="right">175.933</td>
+<td align="right">25.411</td>
 </tr>
 <tr class="odd">
-<td align="right">167</td>
-<td align="left">not_rainy_or_snowy</td>
+<td align="left">rainy_and_snowy</td>
+<td align="right">150.500</td>
+<td align="right">36.272</td>
 </tr>
 <tr class="even">
-<td align="right">179</td>
-<td align="left">not_rainy_or_snowy</td>
-</tr>
-<tr class="odd">
-<td align="right">161</td>
-<td align="left">not_rainy_or_snowy</td>
-</tr>
-<tr class="even">
-<td align="right">185</td>
-<td align="left">not_rainy_or_snowy</td>
-</tr>
-<tr class="odd">
-<td align="right">194</td>
-<td align="left">rainy</td>
-</tr>
-<tr class="even">
-<td align="right">170</td>
-<td align="left">rainy</td>
-</tr>
-<tr class="odd">
-<td align="right">153</td>
-<td align="left">rainy</td>
-</tr>
-<tr class="even">
-<td align="right">141</td>
 <td align="left">snowy</td>
-</tr>
-<tr class="odd">
-<td align="right">182</td>
-<td align="left">not_rainy_or_snowy</td>
-</tr>
-<tr class="even">
-<td align="right">173</td>
-<td align="left">not_rainy_or_snowy</td>
+<td align="right">155.862</td>
+<td align="right">21.052</td>
 </tr>
 </tbody>
 </table>

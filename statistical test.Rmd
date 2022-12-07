@@ -73,10 +73,15 @@ crime_weather_2 <-  crime_weather %>%
                            mean_prcp >0 & mean_snow >0 ~ 'rainy_and_snowy',
                            mean_prcp == 0 & mean_snow >0 ~ 'snowy',
                            mean_prcp >0 & mean_snow == 0 ~ "rainy")) %>%
-  select(total_crime,  weather)
+  select(date, total_crime,  weather)
+
 crime_weather_2 %>%
-  head(20)%>%
+  group_by(weather)%>%
+  summarise(mean_daily_crime = mean(total_crime),
+  Standard_deviation = sd(total_crime)) %>%
   knitr::kable(digits = 3)
+
+
 ```
 
 
