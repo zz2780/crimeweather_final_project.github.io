@@ -33,6 +33,7 @@
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 <link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
@@ -228,6 +229,9 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
 
 
@@ -373,6 +377,14 @@ div.tocify {
 
 <div id="header">
 
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
 
 
 <h1 class="title toc-ignore">Report</h1>
@@ -382,12 +394,28 @@ div.tocify {
 
 <div id="motivation" class="section level2">
 <h2>Motivation</h2>
-</div>
-<div id="related-work" class="section level2">
-<h2>Related Work</h2>
+<p>Based on the Lombroso’s Theory of Crime, natural climatic factors can
+influence crime rates. The Extreme temperatures sap one’s energy and
+reduce the passion for crime. The suitable temperatures stimulate one’s
+nerve like alcohol and makes it easier to commit criminal acts in an
+excited situation.</p>
+<p>In fact, the weather in criminology covers many aspects. Apart from
+the weather itself, it also involves the seasons as well as the
+temperature. All of these natural events occur in the spatial and
+temporal dimensions and recur with regularity from year to year
+constitutes a season. In order to fully discuss the changes of crime
+rates in the time dimension, we also consider the changes in crime rates
+at different times of the day and on different days of the week.</p>
 </div>
 <div id="initial-questions" class="section level2">
 <h2>Initial Questions</h2>
+<ul>
+<li>Is frequency of crimes associated with temperature of the day?</li>
+<li>Is frequency of crimes associated with precipitation/snowfall of the
+day?</li>
+<li>Do different times of the day and days of the week have an impact on
+the association above?</li>
+</ul>
 </div>
 <div id="data" class="section level2">
 <h2>Data</h2>
@@ -442,6 +470,50 @@ href="https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.n
 </div>
 <div id="exploratory-analysis" class="section level2">
 <h2>Exploratory Analysis</h2>
+<p>Based on some publicly available information, we knew that weather
+affect crime rate. For example, the hotter the weather is, the more
+likely people are to commit crimes. The worse the weather is, the less
+likely people are to go out and commit crimes. Here we want to predict
+number of crimes each day in New York as our outcome. And the
+precipitation, snow depth, maximum temperature and minimum temperature
+can be considered as predictors.</p>
+<p>We checked the distribution of number of crime cases each day in New
+York.</p>
+<pre class="r"><code>ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()+ 
+  labs(title = &quot;The distribution of daily cases&quot;, 
+       y = &quot;Counts&quot;, 
+       x = &quot;Number of crimes per day&quot;)+
+  theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
+<p>The distribution of daily cases is approximately normally
+distributed, thus we do not need to transform the value of the
+outcome.</p>
+<p>Then, we use scatter plot to investigate the association between
+weather and cases/crime.</p>
+<pre class="r"><code>ggplot(crime_weather, aes(x = mean_tmax, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between Max temperatures and reported crime&quot;, 
+       y = &quot;Total Crime reported&quot;, 
+       x = &quot;Max temperatures of a day&quot;)+
+    theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-4-1.png" width="768" /></p>
+<pre class="r"><code>ggplot(crime_weather, aes(x = mean_tmin, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between Min temperatures and reported crime&quot;, 
+       y = &quot;Total Crime reported&quot;, 
+       x = &quot;Min temperatures of a day&quot;)+
+    theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-4-2.png" width="768" /></p>
+<pre class="r"><code>ggplot(crime_weather, aes(x = mean_prcp, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between precipitation and reported crime&quot;,
+       y = &quot;Total Crime reported&quot;, 
+       x = &quot;Precipitation(tenths of mm)&quot;)+
+    theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-4-3.png" width="768" /></p>
+<pre class="r"><code>ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between snowfall and reported crime&quot;,
+       y = &quot;Total Crime reported&quot;, 
+       x = &quot;Snow depth(mm)&quot;)+
+    theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-4-4.png" width="768" /></p>
+<p>From the plots, we noticed that all of the four predictors may have
+association with the number of cases of crime in New York. We also want
+to investigate whether the month and day of week can be predictors.
+(Beginning of EDA)</p>
 </div>
 <div id="statistical-analysis" class="section level2">
 <h2>Statistical Analysis</h2>
@@ -526,6 +598,11 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
 
 <script>
 $(document).ready(function ()  {
