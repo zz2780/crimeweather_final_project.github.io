@@ -125,7 +125,7 @@ The worse the weather is, the less likely people are to go out and commit crimes
 Here we want to predict number of crimes each day in New York as our outcome. And the precipitation, 
 snow depth, maximum temperature and minimum temperature can be considered as predictors.
 
-We checked the distribution of number of crime cases each day in New York.
+We first checked the distribution of number of crime cases each day in New York.
 ```{r}
 ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()+ 
   labs(title = "The distribution of daily cases", 
@@ -164,7 +164,9 @@ ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()+    la
 ```
  
 From the plots, we noticed that all of the four predictors may have association 
-with the number of cases of crime in New York. 
+with the number of cases of crime in New York. Association between crimes and min/max temperature have a more 
+obvious linear trend, whereas that between crimes and precipitation and snow depth have a less obvious trend.
+
 We also want to investigate whether the month and day of week can be predictors.
 (Beginning of EDA)
 
