@@ -76,7 +76,7 @@ and crime
 ggplot(crime_weather, aes(x = mean_tmax, y = total_crime)) + geom_point() 
 ggplot(crime_weather, aes(x = mean_tmin, y = total_crime)) + geom_point() 
 ggplot(crime_weather, aes(x = mean_prcp, y = total_crime)) + geom_point() 
-ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point() 
+ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()
 ```
  
 From the plots, we noticed that all of the four predictors may have association 

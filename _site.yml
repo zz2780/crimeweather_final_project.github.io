@@ -3,14 +3,16 @@ output_dir: "."
 navbar:
   title: "Home"
   right:
+    - text: "Data"
+      href: Clean-data.html 
     - text: "Report"
-      href: 
+      href: Report.html
     - text: "Visualizations"
       href: 
-    - text: "Model C"
-      href: 
-    - text: "Model D"
-      href: 
+    - text: "Statistical Test"
+      href: statistical-test.html
+    - text: "Modeling"
+      href: Modeling.html
     - text: "Interactive Map"
       href: 
     - icon: fa-github fa-lg
