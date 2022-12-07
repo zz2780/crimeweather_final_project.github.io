@@ -68,8 +68,8 @@ The key variables of weather are:
 We want to explore more on our data. So we conducted some statistical test.
 First, we conducted a Chi-squared test on year and number of cases each month to 
 check whether the distribution of number of cases per month is different between
-the two years. The result shows that there is no difference of distribution between
-the two years. 
+the two years. The result shows that there is a significant difference of 
+distribution between the two years. 
 
 And then we want to investigate whether weather is a significant factor on number 
 of crime cases. We combine the two dataset and create a categorical variable 

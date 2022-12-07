@@ -9,10 +9,12 @@ navbar:
       href: Report.html
     - text: "Visualizations"
       href: 
-    - text: "Statistical Test"
-      href: statistical-test.html
-    - text: "Modeling"
-      href: Modeling.html
+    - text: "Analysis"
+      menu:
+        - text : "Statistical Test"
+          href: statistical-test.html
+        - text: "Modeling"
+          href: Modeling.html
     - text: "Interactive Map"
       href: map.html
     - icon: fa-github fa-lg

@@ -334,11 +334,22 @@ div.tocify {
         
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li class="dropdown-header">Report</li>
+        <li>
+  <a href="Clean-data.html">Data</a>
+</li>
+<li>
+  <a href="Report.html">Report</a>
+</li>
 <li class="dropdown-header">Visualizations</li>
-<li class="dropdown-header">Model C</li>
-<li class="dropdown-header">Model D</li>
-<li class="dropdown-header">Interactive Map</li>
+<li>
+  <a href="statistical-test.html">Statistical Test</a>
+</li>
+<li>
+  <a href="Modeling.html">Modeling</a>
+</li>
+<li>
+  <a href="map.html">Interactive Map</a>
+</li>
 <li>
   <a href="https://github.com/zz2780/crimeweather_final_project.github.io">
     <span class="fa fa-github fa-lg"></span>
@@ -398,96 +409,86 @@ number of crime cases of each month was different in 2016 and 2017</p>
 df_1 &lt;- crime_df %&gt;%
   mutate (
     year = year(date)
-  )%&gt;%
-  group_by(year,mon) %&gt;%
-  summarise(total_by_mon = n()) %&gt;%
-  pivot_wider(
-    names_from = &quot;year&quot;,
-    values_from = &quot;total_by_mon&quot;
-  )%&gt;%
-  na.omit()
-df_1 %&gt;%
+  )
+
+table(df_1$year, df_1 $mon)%&gt;%
   knitr::kable(digits = 3)</code></pre>
-<table>
+<table style="width:100%;">
+<colgroup>
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+</colgroup>
 <thead>
 <tr class="header">
-<th align="right">mon</th>
-<th align="right">2016</th>
-<th align="right">2017</th>
+<th align="left"></th>
+<th align="right">1</th>
+<th align="right">2</th>
+<th align="right">3</th>
+<th align="right">4</th>
+<th align="right">5</th>
+<th align="right">6</th>
+<th align="right">7</th>
+<th align="right">8</th>
+<th align="right">9</th>
+<th align="right">10</th>
+<th align="right">11</th>
+<th align="right">12</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="right">1</td>
+<td align="left">2016</td>
 <td align="right">5143</td>
-<td align="right">5226</td>
-</tr>
-<tr class="even">
-<td align="right">2</td>
 <td align="right">4537</td>
-<td align="right">4370</td>
-</tr>
-<tr class="odd">
-<td align="right">3</td>
 <td align="right">5224</td>
-<td align="right">4912</td>
-</tr>
-<tr class="even">
-<td align="right">4</td>
 <td align="right">5248</td>
-<td align="right">5097</td>
-</tr>
-<tr class="odd">
-<td align="right">5</td>
 <td align="right">5510</td>
-<td align="right">5589</td>
-</tr>
-<tr class="even">
-<td align="right">6</td>
 <td align="right">5450</td>
-<td align="right">5481</td>
-</tr>
-<tr class="odd">
-<td align="right">7</td>
 <td align="right">5482</td>
-<td align="right">5753</td>
-</tr>
-<tr class="even">
-<td align="right">8</td>
 <td align="right">5660</td>
-<td align="right">5696</td>
-</tr>
-<tr class="odd">
-<td align="right">9</td>
 <td align="right">5309</td>
-<td align="right">5756</td>
-</tr>
-<tr class="even">
-<td align="right">10</td>
 <td align="right">5394</td>
-<td align="right">5996</td>
-</tr>
-<tr class="odd">
-<td align="right">11</td>
 <td align="right">4978</td>
-<td align="right">5667</td>
+<td align="right">4998</td>
 </tr>
 <tr class="even">
-<td align="right">12</td>
-<td align="right">4998</td>
+<td align="left">2017</td>
+<td align="right">5226</td>
+<td align="right">4370</td>
+<td align="right">4912</td>
+<td align="right">5097</td>
+<td align="right">5589</td>
+<td align="right">5481</td>
+<td align="right">5753</td>
+<td align="right">5696</td>
+<td align="right">5756</td>
+<td align="right">5996</td>
+<td align="right">5667</td>
 <td align="right">6595</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>chisq.test(table(df_1$`2016`, df_1 $`2017`))</code></pre>
+<pre class="r"><code>chisq.test(table(df_1$year, df_1 $mon))</code></pre>
 <pre><code>## 
 ##  Pearson&#39;s Chi-squared test
 ## 
-## data:  table(df_1$`2016`, df_1$`2017`)
-## X-squared = 132, df = 121, p-value = 0.2329</code></pre>
-<p>As the result told us, the p-value &gt; 0.05 , therefore we fail to
-reject the null hypothesis and conclude that the distribution of number
-of crimes cases of each month is the samein 2016 and 2017.</p>
+## data:  table(df_1$year, df_1$mon)
+## X-squared = 257.95, df = 11, p-value &lt; 2.2e-16</code></pre>
+<p>As the result told us, the p-value &lt; 0.05 , therefore we reject
+the null hypothesis and conclude that the distribution of number of
+crimes cases of each month is significantly different between 2016 and
+2017.</p>
 </div>
 <div id="anova-between-number-of-crimes-per-day-and-weather"
 class="section level2">
@@ -626,177 +627,379 @@ weather.</p>
   mutate(weather = case_when(mean_prcp == 0 &amp; mean_snow == 0 ~ &#39;not_rainy_or_snowy&#39;,
                            mean_prcp &gt;0 &amp; mean_snow &gt;0 ~ &#39;rainy_and_snowy&#39;,
                            mean_prcp == 0 &amp; mean_snow &gt;0 ~ &#39;snowy&#39;,
-                           mean_prcp &gt;0 &amp; mean_snow == 0 ~ &quot;rainy&quot;)) %&gt;%
-   group_by(weather,offense)%&gt;%
-  summarise(
-    number = n()
-  ) %&gt;%
-  pivot_wider(
-    names_from = &quot;weather&quot;,
-    values_from = &quot;number&quot;
-  )
-    
+                           mean_prcp &gt;0 &amp; mean_snow == 0 ~ &quot;rainy&quot;)) 
 
-crime_weather_3 %&gt;%
-  head(20)%&gt;%
-  knitr::kable(digits = 3)</code></pre>
+table(crime_weather_3$weather, crime_weather_3$offense) %&gt;%
+  knitr::kable(digits = 1)</code></pre>
 <table style="width:100%;">
 <colgroup>
-<col width="44%" />
-<col width="22%" />
-<col width="7%" />
-<col width="19%" />
-<col width="7%" />
+<col width="1%" />
+<col width="0%" />
+<col width="1%" />
+<col width="1%" />
+<col width="2%" />
+<col width="2%" />
+<col width="1%" />
+<col width="0%" />
+<col width="2%" />
+<col width="1%" />
+<col width="0%" />
+<col width="2%" />
+<col width="2%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="0%" />
+<col width="1%" />
+<col width="0%" />
+<col width="0%" />
+<col width="1%" />
+<col width="0%" />
+<col width="1%" />
+<col width="2%" />
+<col width="1%" />
+<col width="2%" />
+<col width="2%" />
+<col width="0%" />
+<col width="0%" />
+<col width="2%" />
+<col width="2%" />
+<col width="1%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="1%" />
+<col width="2%" />
+<col width="2%" />
+<col width="1%" />
+<col width="2%" />
+<col width="2%" />
+<col width="1%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="0%" />
+<col width="0%" />
+<col width="0%" />
+<col width="0%" />
+<col width="1%" />
+<col width="2%" />
+<col width="1%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th align="left">offense</th>
-<th align="right">not_rainy_or_snowy</th>
-<th align="right">rainy</th>
-<th align="right">rainy_and_snowy</th>
-<th align="right">snowy</th>
+<th align="left"></th>
+<th align="right"></th>
+<th align="right">ADMINISTRATIVE CODE</th>
+<th align="right">ADMINISTRATIVE CODES</th>
+<th align="right">AGRICULTURE &amp; MRKTS LAW-UNCLASSIFIED</th>
+<th align="right">ALCOHOLIC BEVERAGE CONTROL LAW</th>
+<th align="right">ANTICIPATORY OFFENSES</th>
+<th align="right">ARSON</th>
+<th align="right">ASSAULT 3 &amp; RELATED OFFENSES</th>
+<th align="right">BURGLAR’S TOOLS</th>
+<th align="right">BURGLARY</th>
+<th align="right">CHILD ABANDONMENT/NON SUPPORT</th>
+<th align="right">CRIMINAL MISCHIEF &amp; RELATED OF</th>
+<th align="right">CRIMINAL TRESPASS</th>
+<th align="right">DANGEROUS DRUGS</th>
+<th align="right">DANGEROUS WEAPONS</th>
+<th align="right">DISORDERLY CONDUCT</th>
+<th align="right">ENDAN WELFARE INCOMP</th>
+<th align="right">ESCAPE 3</th>
+<th align="right">FELONY ASSAULT</th>
+<th align="right">FORGERY</th>
+<th align="right">FRAUDS</th>
+<th align="right">FRAUDULENT ACCOSTING</th>
+<th align="right">GAMBLING</th>
+<th align="right">GRAND LARCENY</th>
+<th align="right">GRAND LARCENY OF MOTOR VEHICLE</th>
+<th align="right">HARRASSMENT 2</th>
+<th align="right">HOMICIDE-NEGLIGENT,UNCLASSIFIE</th>
+<th align="right">INTOXICATED &amp; IMPAIRED DRIVING</th>
+<th align="right">JOSTLING</th>
+<th align="right">KIDNAPPING</th>
+<th align="right">KIDNAPPING &amp; RELATED OFFENSES</th>
+<th align="right">LOITERING/GAMBLING (CARDS, DIC</th>
+<th align="right">MISCELLANEOUS PENAL LAW</th>
+<th align="right">MURDER &amp; NON-NEGL. MANSLAUGHTER</th>
+<th align="right">NEW YORK CITY HEALTH CODE</th>
+<th align="right">NYS LAWS-UNCLASSIFIED FELONY</th>
+<th align="right">NYS LAWS-UNCLASSIFIED VIOLATION</th>
+<th align="right">OFF. AGNST PUB ORD SENSBLTY &amp;</th>
+<th align="right">OFFENSES AGAINST PUBLIC ADMINI</th>
+<th align="right">OFFENSES AGAINST PUBLIC SAFETY</th>
+<th align="right">OFFENSES AGAINST THE PERSON</th>
+<th align="right">OFFENSES INVOLVING FRAUD</th>
+<th align="right">OFFENSES RELATED TO CHILDREN</th>
+<th align="right">OTHER OFFENSES RELATED TO THEF</th>
+<th align="right">OTHER STATE LAWS</th>
+<th align="right">OTHER STATE LAWS (NON PENAL LA</th>
+<th align="right">OTHER STATE LAWS (NON PENAL LAW)</th>
+<th align="right">PETIT LARCENY</th>
+<th align="right">PETIT LARCENY OF MOTOR VEHICLE</th>
+<th align="right">POSSESSION OF STOLEN PROPERTY</th>
+<th align="right">PROSTITUTION &amp; RELATED OFFENSES</th>
+<th align="right">RAPE</th>
+<th align="right">ROBBERY</th>
+<th align="right">SEX CRIMES</th>
+<th align="right">THEFT-FRAUD</th>
+<th align="right">THEFT OF SERVICES</th>
+<th align="right">UNAUTHORIZED USE OF A VEHICLE</th>
+<th align="right">VEHICLE AND TRAFFIC LAWS</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left"></td>
+<td align="left">not_rainy_or_snowy</td>
 <td align="right">3</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">ADMINISTRATIVE CODE</td>
 <td align="right">142</td>
-<td align="right">94</td>
-<td align="right">5</td>
-<td align="right">4</td>
-</tr>
-<tr class="odd">
-<td align="left">ADMINISTRATIVE CODES</td>
 <td align="right">1</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">AGRICULTURE &amp; MRKTS LAW-UNCLASSIFIED</td>
 <td align="right">16</td>
-<td align="right">10</td>
-<td align="right">1</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="left">ALCOHOLIC BEVERAGE CONTROL LAW</td>
 <td align="right">15</td>
-<td align="right">7</td>
-<td align="right">NA</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="left">ANTICIPATORY OFFENSES</td>
 <td align="right">1</td>
-<td align="right">1</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="left">ARSON</td>
 <td align="right">110</td>
-<td align="right">55</td>
-<td align="right">4</td>
-<td align="right">12</td>
-</tr>
-<tr class="even">
-<td align="left">ASSAULT 3 &amp; RELATED OFFENSES</td>
 <td align="right">8185</td>
-<td align="right">4708</td>
-<td align="right">329</td>
-<td align="right">492</td>
-</tr>
-<tr class="odd">
-<td align="left">BURGLAR’S TOOLS</td>
 <td align="right">44</td>
-<td align="right">20</td>
-<td align="right">4</td>
-<td align="right">2</td>
-</tr>
-<tr class="even">
-<td align="left">BURGLARY</td>
 <td align="right">1949</td>
-<td align="right">1199</td>
-<td align="right">83</td>
-<td align="right">127</td>
-</tr>
-<tr class="odd">
-<td align="left">CHILD ABANDONMENT/NON SUPPORT</td>
 <td align="right">7</td>
-<td align="right">1</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">CRIMINAL MISCHIEF &amp; RELATED OF</td>
 <td align="right">7904</td>
-<td align="right">4688</td>
-<td align="right">331</td>
-<td align="right">415</td>
-</tr>
-<tr class="odd">
-<td align="left">CRIMINAL TRESPASS</td>
 <td align="right">516</td>
-<td align="right">336</td>
-<td align="right">35</td>
-<td align="right">47</td>
-</tr>
-<tr class="even">
-<td align="left">DANGEROUS DRUGS</td>
 <td align="right">3602</td>
-<td align="right">1935</td>
-<td align="right">147</td>
-<td align="right">210</td>
-</tr>
-<tr class="odd">
-<td align="left">DANGEROUS WEAPONS</td>
 <td align="right">1550</td>
-<td align="right">858</td>
-<td align="right">80</td>
-<td align="right">88</td>
+<td align="right">14</td>
+<td align="right">4</td>
+<td align="right">3</td>
+<td align="right">3257</td>
+<td align="right">975</td>
+<td align="right">524</td>
+<td align="right">35</td>
+<td align="right">41</td>
+<td align="right">7542</td>
+<td align="right">972</td>
+<td align="right">10772</td>
+<td align="right">2</td>
+<td align="right">860</td>
+<td align="right">5</td>
+<td align="right">1</td>
+<td align="right">22</td>
+<td align="right">1</td>
+<td align="right">2115</td>
+<td align="right">36</td>
+<td align="right">1</td>
+<td align="right">128</td>
+<td align="right">1</td>
+<td align="right">3696</td>
+<td align="right">1397</td>
+<td align="right">9</td>
+<td align="right">220</td>
+<td align="right">209</td>
+<td align="right">14</td>
+<td align="right">249</td>
+<td align="right">2</td>
+<td align="right">51</td>
+<td align="right">1</td>
+<td align="right">13317</td>
+<td align="right">8</td>
+<td align="right">320</td>
+<td align="right">14</td>
+<td align="right">347</td>
+<td align="right">2232</td>
+<td align="right">1161</td>
+<td align="right">883</td>
+<td align="right">86</td>
+<td align="right">297</td>
+<td align="right">1036</td>
 </tr>
 <tr class="even">
-<td align="left">DISORDERLY CONDUCT</td>
-<td align="right">14</td>
-<td align="right">5</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="left">ENDAN WELFARE INCOMP</td>
-<td align="right">4</td>
+<td align="left">rainy</td>
+<td align="right">2</td>
+<td align="right">94</td>
+<td align="right">0</td>
+<td align="right">10</td>
 <td align="right">7</td>
 <td align="right">1</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">ESCAPE 3</td>
-<td align="right">3</td>
+<td align="right">55</td>
+<td align="right">4708</td>
+<td align="right">20</td>
+<td align="right">1199</td>
+<td align="right">1</td>
+<td align="right">4688</td>
+<td align="right">336</td>
+<td align="right">1935</td>
+<td align="right">858</td>
+<td align="right">5</td>
+<td align="right">7</td>
 <td align="right">2</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
+<td align="right">1819</td>
+<td align="right">504</td>
+<td align="right">308</td>
+<td align="right">23</td>
+<td align="right">19</td>
+<td align="right">4306</td>
+<td align="right">591</td>
+<td align="right">6193</td>
+<td align="right">1</td>
+<td align="right">486</td>
+<td align="right">4</td>
+<td align="right">1</td>
+<td align="right">16</td>
+<td align="right">0</td>
+<td align="right">1236</td>
+<td align="right">16</td>
+<td align="right">0</td>
+<td align="right">69</td>
+<td align="right">4</td>
+<td align="right">2233</td>
+<td align="right">737</td>
+<td align="right">4</td>
+<td align="right">108</td>
+<td align="right">109</td>
+<td align="right">5</td>
+<td align="right">156</td>
+<td align="right">1</td>
+<td align="right">28</td>
+<td align="right">0</td>
+<td align="right">7685</td>
+<td align="right">3</td>
+<td align="right">187</td>
+<td align="right">13</td>
+<td align="right">191</td>
+<td align="right">1360</td>
+<td align="right">679</td>
+<td align="right">520</td>
+<td align="right">40</td>
+<td align="right">164</td>
+<td align="right">588</td>
 </tr>
 <tr class="odd">
-<td align="left">FELONY ASSAULT</td>
-<td align="right">3257</td>
-<td align="right">1819</td>
+<td align="left">rainy_and_snowy</td>
+<td align="right">1</td>
+<td align="right">5</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">4</td>
+<td align="right">329</td>
+<td align="right">4</td>
+<td align="right">83</td>
+<td align="right">0</td>
+<td align="right">331</td>
+<td align="right">35</td>
+<td align="right">147</td>
+<td align="right">80</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
 <td align="right">127</td>
-<td align="right">195</td>
+<td align="right">44</td>
+<td align="right">32</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">328</td>
+<td align="right">31</td>
+<td align="right">459</td>
+<td align="right">0</td>
+<td align="right">41</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">90</td>
+<td align="right">4</td>
+<td align="right">1</td>
+<td align="right">5</td>
+<td align="right">0</td>
+<td align="right">187</td>
+<td align="right">62</td>
+<td align="right">0</td>
+<td align="right">7</td>
+<td align="right">7</td>
+<td align="right">1</td>
+<td align="right">16</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">578</td>
+<td align="right">0</td>
+<td align="right">9</td>
+<td align="right">0</td>
+<td align="right">14</td>
+<td align="right">86</td>
+<td align="right">60</td>
+<td align="right">39</td>
+<td align="right">1</td>
+<td align="right">20</td>
+<td align="right">39</td>
 </tr>
 <tr class="even">
-<td align="left">FORGERY</td>
-<td align="right">975</td>
-<td align="right">504</td>
-<td align="right">44</td>
+<td align="left">snowy</td>
+<td align="right">0</td>
+<td align="right">4</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">12</td>
+<td align="right">492</td>
+<td align="right">2</td>
+<td align="right">127</td>
+<td align="right">0</td>
+<td align="right">415</td>
+<td align="right">47</td>
+<td align="right">210</td>
+<td align="right">88</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">195</td>
 <td align="right">57</td>
+<td align="right">32</td>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">475</td>
+<td align="right">49</td>
+<td align="right">638</td>
+<td align="right">0</td>
+<td align="right">67</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">133</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="right">11</td>
+<td align="right">0</td>
+<td align="right">237</td>
+<td align="right">95</td>
+<td align="right">0</td>
+<td align="right">8</td>
+<td align="right">7</td>
+<td align="right">1</td>
+<td align="right">8</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">711</td>
+<td align="right">0</td>
+<td align="right">20</td>
+<td align="right">0</td>
+<td align="right">14</td>
+<td align="right">143</td>
+<td align="right">69</td>
+<td align="right">63</td>
+<td align="right">6</td>
+<td align="right">14</td>
+<td align="right">59</td>
 </tr>
 </tbody>
 </table>
@@ -814,12 +1017,12 @@ and weather.</p>
 each type of crime was the same in different weathers.</p>
 <p><span class="math inline">\(H_1\)</span> : The number distribution of
 each type of crime was different in different weathers.</p>
-<pre class="r"><code>chisq.test(crime_weather_3$not_rainy_or_snowy,crime_weather_3$rainy, crime_weather_3$rainy_and_snowy, crime_weather_3$snowy)</code></pre>
+<pre class="r"><code>chisq.test(table(crime_weather_3$weather, crime_weather_3$offense))</code></pre>
 <pre><code>## 
 ##  Pearson&#39;s Chi-squared test
 ## 
-## data:  crime_weather_3$not_rainy_or_snowy and crime_weather_3$rainy
-## X-squared = 2248.8, df = 2021, p-value = 0.0002631</code></pre>
+## data:  table(crime_weather_3$weather, crime_weather_3$offense)
+## X-squared = 224.29, df = 171, p-value = 0.00388</code></pre>
 <p>We can see p-value is smaller than 0.05, so we reject the null
 hypothesis and conclude that there’s at least one type of weather’s
 proportions of number of different type of crimes is different from

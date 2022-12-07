@@ -44,23 +44,18 @@ crime_weather <-
 df_1 <- crime_df %>%
   mutate (
     year = year(date)
-  )%>%
-  group_by(year,mon) %>%
-  summarise(total_by_mon = n()) %>%
-  pivot_wider(
-    names_from = "year",
-    values_from = "total_by_mon"
-  )%>%
-  na.omit()
-df_1 %>%
+  )
+
+table(df_1$year, df_1 $mon)%>%
   knitr::kable(digits = 3)
 ```
+
 ```{r}
-chisq.test(table(df_1$`2016`, df_1 $`2017`))
+chisq.test(table(df_1$year, df_1 $mon))
 ```
-As the result told us, the p-value > 0.05 , therefore we fail to reject the null 
+As the result told us, the p-value < 0.05 , therefore we reject the null 
 hypothesis and conclude that the distribution of number of crimes cases
-of each month is the samein 2016 and 2017.
+of each month is significantly different between 2016 and 2017.
 
 
 ## ANOVA between number of crimes per day and weather
@@ -117,20 +112,10 @@ crime_weather_3 = crime_df %>%
   mutate(weather = case_when(mean_prcp == 0 & mean_snow == 0 ~ 'not_rainy_or_snowy',
                            mean_prcp >0 & mean_snow >0 ~ 'rainy_and_snowy',
                            mean_prcp == 0 & mean_snow >0 ~ 'snowy',
-                           mean_prcp >0 & mean_snow == 0 ~ "rainy")) %>%
-   group_by(weather,offense)%>%
-  summarise(
-    number = n()
-  ) %>%
-  pivot_wider(
-    names_from = "weather",
-    values_from = "number"
-  )
-    
+                           mean_prcp >0 & mean_snow == 0 ~ "rainy")) 
 
-crime_weather_3 %>%
-  head(20)%>%
-  knitr::kable(digits = 3)
+table(crime_weather_3$weather, crime_weather_3$offense) %>%
+  knitr::kable(digits = 1)
 ```
 
 ## Chi-squared test on weather and number of different types of offense
@@ -145,7 +130,7 @@ $H_0$ : The number distribution of each type of crime was the same in different 
 $H_1$ : The number distribution of each type of crime was different in different weathers.
 
 ```{r}
-chisq.test(crime_weather_3$not_rainy_or_snowy,crime_weather_3$rainy, crime_weather_3$rainy_and_snowy, crime_weather_3$snowy)
+chisq.test(table(crime_weather_3$weather, crime_weather_3$offense))
 ```
 We can see p-value is smaller than 0.05, so we reject the null hypothesis and 
 conclude that there's at least one type of weather's proportions of number of 
