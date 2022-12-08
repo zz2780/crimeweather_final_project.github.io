@@ -421,10 +421,8 @@ crime_df &lt;- crime_raw %&gt;%
     place = prem_typ_desc,
     suspect_age = susp_age_group,
     suspect_race = factor(susp_race),
-    suspect_sex = factor(recode(susp_sex, &quot;U&quot; = &quot;Unkonwn&quot;, &quot;F&quot; = &quot;Female&quot;, &quot;M&quot; = &quot;Male&quot;)),
     victim_age = vic_age_group,
-    victim_race = factor(vic_race),
-    victim_sex = factor(recode(vic_sex, &quot;F&quot; = &quot;Female&quot;, &quot;M&quot; = &quot;Male&quot;, &quot;D&quot; = &quot;Business/Organization&quot;, &quot;E&quot; = &quot;PSNY/People of the State of New York&quot;))) %&gt;%
+    victim_race = factor(vic_race)) %&gt;%
   mutate(
     day_of_week = factor(weekdays(date)),
     mon = month(date),
@@ -454,10 +452,8 @@ classification of offense.</li>
 residence,street, etc.</li>
 <li><code>suspect_age</code>. Suspect’s Age Group.</li>
 <li><code>suspect_race</code>. Suspect’s Race Description.</li>
-<li><code>suspect_sex</code>. Suspect’s Sex Description.</li>
 <li><code>victim_age</code>. Victim’s Age Group.</li>
 <li><code>victim_race</code>. Victim’s Race Description.</li>
-<li><code>victim_sex</code>. Victim’s Sex Description.</li>
 <li><code>day_of_week</code>. Day of week that a crime occurs.</li>
 <li><code>mon</code>. Months in a year that a crime occurs.</li>
 <li><code>latitude</code>. Latitude of the place the crime occurs.</li>
@@ -470,16 +466,15 @@ occurs.</li>
     date_min = &quot;2016-01-01&quot;,
     date_max = &quot;2017-12-31&quot;) %&gt;%
   mutate(
-    name = recode(
-      id, 
-      USW00094728 = &quot;CentralPark_NY&quot;, 
-      USW00094789 = &quot;JFK Airport_NY&quot;,
-      USW00014732 = &quot;La Guardia_NY&quot;),
+    id=case_when(
+      id==&quot;USW00094728&quot; ~ &quot;CentralPark_NY&quot;, 
+      id==&quot;USW00094789&quot; ~ &quot;JFK Airport_NY&quot;,
+     id==&quot;USW00014732&quot; ~ &quot;La Guardia_NY&quot;),
     
     
     tmin = tmin / 10,
     tmax = tmax / 10) %&gt;%
-  select(name, id, everything())
+  select(id, everything())
 
 average_weather &lt;- weather %&gt;% 
   group_by(date) %&gt;%
