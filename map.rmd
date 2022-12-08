@@ -53,8 +53,8 @@ crime_plot
 # Map based on zipcodes
 
 ```{r}
-library(sp)
-library(rgdal)
+library(sp) # for analyzing spatial data
+library(rgdal) # for importing zips shapefile and transform CRS
 ```
 
 ```{r}
@@ -77,6 +77,17 @@ crime_spdf = SpatialPointsDataFrame(coords = crime_lat_long, data = crime_lat_lo
 crime_zips <- zips[crime_spdf, ]
 
 #redefine crime_df_map to include zipcodes
-crime_df_map$zip <- over(crime_spdf, crime_zips[,"ZCTA5CE10"])
+crime_df_map = cbind(crime_df_map, over(crime_spdf, crime_zips[,"ZCTA5CE10"]))
+crime_df_map = rename(crime_df_map, zip_code = ZCTA5CE10)
 ```
 
+```{r}
+#Obtain number of crimes in each zip region, sorting in descending order
+number_of_crimes = 
+  crime_df_map %>% 
+  group_by(zip_code) %>% 
+  summarize(number_of_crimes = n()) %>%
+  arrange(desc(number_of_crimes))
+number_of_crimes
+```
+```
