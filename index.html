@@ -398,6 +398,10 @@ temporal dimensions and recur with regularity from year to year
 constitutes a season. In order to fully discuss the changes of crime
 rates in the time dimension, we also consider the changes in crime rates
 at different times of the day and on different days of the week.</p>
+<center>
+<p><img
+src="https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg"
+style="width:150.0%" /></p>
 </div>
 <div id="dataset" class="section level1">
 <h1>Dataset</h1>
@@ -415,30 +419,55 @@ observations. Meteorological elements include, but are not limited to,
 daily maximum and minimum temperature, temperature at the time of
 observation. We selected weather data collected from 2016-01-01 to
 2017-12-31 from three weather stations in New York.</p>
+<center>
+<p><img
+src="https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg"
+style="width:150.0%" /></p>
 </div>
 <div id="methods" class="section level1">
 <h1>Methods</h1>
 <p>The NYPD Compliant Data contains 780 million felony, misdemeanor, and
 violation crimes reported to the New York City Police Department (NYPD)
 from 1910 to 2021. Weather data is collected from the website of NOAA
-using the Global Historical Climatology Network. We selected key
-variables and renamed them with understandable names for both datasets,
-then we combined the two datasets based on date. Exploratory analysis
-was first conducted to investigate if there is an association between
-crime counts and weather including min/max temperature, precipitation
-and snowfall. We also conducted statistical tests and final model
-fitting. Visualization including interactive map and Shiny dashboard is
-also included in the analysis. Anlyses were conducted in R version
-4.2.1.</p>
+using the Global Historical Climatology Network.</p>
+<p>We selected key variables and renamed them with understandable names
+for both datasets, then we combined the two datasets based on date.
+Exploratory analysis was first conducted to investigate if there is an
+association between crime counts and weather including min/max
+temperature, precipitation and snowfall. We also conducted statistical
+tests and final model fitting. Visualization including interactive map
+and Shiny dashboard is also included in the analysis. Anlyses were
+conducted in R version 4.2.1.</p>
+<center>
+<p><img
+src="https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg"
+style="width:150.0%" /></p>
 </div>
 <div id="main-results" class="section level1">
 <h1>Main Results</h1>
+<p>这部分麻烦大家把各自内容中的Main results列举一下。</p>
+<p>Based on the Chi-squared test, the distribution of number of crimes
+cases of each month is significantly different between 2016 and
+2017.</p>
+<p>Based on the one-way ANOVA, The average number of crimes per day is
+correlated to weather.</p>
+<p>We can build a model to predict daily crimes cases.</p>
+<p>Model3: total_crime ~ month +day_of_week + mean_tmax + mean_prcp +
+mean_snow + mean_tmax*day_of_week</p>
+<center>
+<p><img
+src="https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg"
+style="width:150.0%" /></p>
 </div>
 <div id="website-overview-video" class="section level1">
 <h1>Website Overview Video</h1>
 </div>
 <div id="discussion" class="section level1">
 <h1>Discussion</h1>
+<center>
+<p><img
+src="https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg"
+style="width:150.0%" /></p>
 </div>
 
 

@@ -19,18 +19,47 @@ Based on the Lombroso's Theory of Crime, natural climatic factors can influence 
 In fact, the weather in criminology covers many aspects. Apart from the weather itself, it also involves the seasons as well as the temperature. All of these natural events occur in the spatial and temporal dimensions and recur with regularity from year to year constitutes a season. In order to fully discuss the changes of crime rates in the time dimension, we also consider the changes in crime rates at different times of the day and on different days of the week.
 
 
+<center>
+![](https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg){width=150%}
+
 # Dataset
 Our project used the public datasets with information on public safety and Climatology Network. The [NYPD Complaint Data](https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-Year-To-Date-/5uac-w243) includes all valid felony, misdemeanor, and violation crimes reported to the New York City Police Department (NYPD) for all complete quarters so far. In our project, we select the records from 2016-01-01 to 2017-12-31 to do analysis and modeling.
 
 The [Global Historical Climatology Network ](https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.ncdc:C00861/html) integrates daily climate observations. Meteorological elements include, but are not limited to, daily maximum and minimum temperature, temperature at the time of observation. We selected weather data collected from 2016-01-01 to 2017-12-31 from three weather stations in New York.
 
+<center>
+![](https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg){width=150%}
 
 # Methods
-The NYPD Compliant Data contains 780 million felony, misdemeanor, and violation crimes reported to the New York City Police Department (NYPD) from 1910 to 2021. Weather data is collected from the website of NOAA using the Global Historical Climatology Network. We selected key variables and renamed them with understandable names for both datasets, then we combined the two datasets based on date. Exploratory analysis was first conducted to investigate if there is an association between crime counts and weather including min/max temperature, precipitation and snowfall. We also conducted statistical tests and final model fitting. Visualization including interactive map and Shiny dashboard is also included in the analysis. Anlyses were conducted in R version 4.2.1.
+The NYPD Compliant Data contains 780 million felony, misdemeanor, and violation crimes reported to the New York City Police Department (NYPD) from 1910 to 2021. Weather data is collected from the website of NOAA using the Global Historical Climatology Network. 
+
+We selected key variables and renamed them with understandable names for both datasets, then we combined the two datasets based on date. Exploratory analysis was first conducted to investigate if there is an association between crime counts and weather including min/max temperature, precipitation and snowfall. We also conducted statistical tests and final model fitting. Visualization including interactive map and Shiny dashboard is also included in the analysis. Anlyses were conducted in R version 4.2.1.
+
+<center>
+![](https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg){width=150%}
 
 # Main Results
 
+这部分麻烦大家把各自内容中的Main results列举一下。
+
+Based on the Chi-squared test, the distribution of number of crimes cases of each month is significantly different between 2016 and 2017.
+
+Based on the one-way ANOVA, The average number of crimes per day is correlated to weather.
+
+We can build a model to predict daily crimes cases.
+
+Model3: total_crime ~ month +day_of_week + mean_tmax + mean_prcp + mean_snow + mean_tmax*day_of_week
+
+
+<center>
+![](https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg){width=150%}
+
 # Website Overview Video
 
+
+
 # Discussion
+
+<center>
+![](https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg){width=150%}
 
