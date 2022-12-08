@@ -66,9 +66,7 @@ In fact, the weather in criminology covers many aspects. Apart from the weather 
 
 
 ## Initial Questions
-* Is frequency of crimes associated with temperature of the day?
-* Is frequency of crimes associated with precipitation/snowfall of the day?
-* Do different times of the day and days of the week have an impact on the association above?
+The initial question we want to investigate is if weather can have an effect on crime rates. As we collected the data, we discovered that the dataset also include the time and date of each crime. This discovery led us to the discussion whether different time of the day or day of the week can impact crime rates. 
 
 ## Data
 
@@ -249,6 +247,12 @@ remains constant for the rest of year. And number of crimes fluctuate when compa
 Friday and Wednesday have relatively higher number of crimes in average. When comparing each hour of the day,
 we can see that during the hour from 1AM to 11AM, the number of crimes is lower than the rest of the day, with
 5AM and 6AM have the lowest number of crimes in average. 
+
+#### Map
+
+#### Shiny
+The Shiny dashboard reports number and distribution of different offenses in NYC based on selected borough, hour of the day, days of the week, and season of the year.
+
 
 After some exploratory analysis, we moved on to statistical analysis.
 
