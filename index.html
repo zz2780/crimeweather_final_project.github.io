@@ -452,8 +452,23 @@ cases of each month is significantly different between 2016 and
 <p>Based on the one-way ANOVA, The average number of crimes per day is
 correlated to weather.</p>
 <p>We can build a model to predict daily crimes cases.</p>
-<p>Model3: total_crime ~ month +day_of_week + mean_tmax + mean_prcp +
-mean_snow + mean_tmax*day_of_week</p>
+<p>We already know that weather may influence crimes from previous
+analysis. So we decided to build a model to predict daily crimes cases.
+We proposed following models:</p>
+<ul>
+<li>Model1: total_crime ~ day_of_week + mean_tmax + mean_prcp +
+mean_snow</li>
+<li>Model2: total_crime ~ month +day_of_week + mean_tmax + mean_prcp +
+mean_snow</li>
+<li>Model3: total_crime ~ month +day_of_week + mean_tmax + mean_prcp +
+mean_snow + mean_tmax*day_of_week</li>
+<li>Model4: total_crime ~ mean_tmax + mean_prcp + mean_snow</li>
+</ul>
+<p>We use cross validation to compare the four models and performed a
+diagnostics and we concluded that Model3 is the best and it meet the
+model assumptions. We should select month, day of week, maximum
+temperature, precipitation, snow depth and a interaction term between
+temperature as our predictors.</p>
 <center>
 <p><img
 src="https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg"

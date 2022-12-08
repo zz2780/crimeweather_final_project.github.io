@@ -27,8 +27,7 @@ crime_df <- read.csv("data/crime_df.csv")%>%
   )
 ```
 
-Column {.sidebar}
------------------------------------------------------------------------
+## Column {.sidebar}
 
 ```{r}
 boros = crime_df %>% distinct(borough) %>% pull()
@@ -64,8 +63,7 @@ radioButtons(
   choices = season_choice, selected = "Spring")
 ```
 
-Column
------------------------------------------------------------------------
+## Column
 
 ### Distribution of Offenses in New York City
 
@@ -81,11 +79,8 @@ renderPlotly({
   count(offense, name = "offense_total") %>%
   arrange(desc(offense_total)) %>%
   plot_ly(
-    x = ~offense_total, y = ~reorder(offense, offense_total), type = "bar")%>%
+    x = ~offense_total, y = ~reorder(offense, offense_total), type = "bar", color = ~ offense, colors = "viridis")%>%
     layout( xaxis = list(title = ""),
          yaxis = list(title = ""))
 })
 ```
-
-
-

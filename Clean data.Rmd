@@ -50,10 +50,8 @@ crime_df <- crime_raw %>%
     place = prem_typ_desc,
     suspect_age = susp_age_group,
     suspect_race = factor(susp_race),
-    suspect_sex = factor(recode(susp_sex, "U" = "Unkonwn", "F" = "Female", "M" = "Male")),
     victim_age = vic_age_group,
-    victim_race = factor(vic_race),
-    victim_sex = factor(recode(vic_sex, "F" = "Female", "M" = "Male", "D" = "Business/Organization", "E" = "PSNY/People of the State of New York"))) %>%
+    victim_race = factor(vic_race)) %>%
   mutate(
     day_of_week = factor(weekdays(date)),
     mon = month(date),
@@ -81,10 +79,8 @@ We select part of the variables from the original dataset, add a few variables a
   * `place`. Specific description of premises; grocery store, residence,street, etc.
   * `suspect_age`. Suspect’s Age Group.
   * `suspect_race`. Suspect’s Race Description.
-  * `suspect_sex`. Suspect’s Sex Description.
   * `victim_age`. Victim’s Age Group.
   * `victim_race`. Victim’s Race Description.
-  * `victim_sex`. Victim’s Sex Description.
   * `day_of_week`. Day of week that a crime occurs.
   * `mon`. Months in a year that a crime occurs.
   * `latitude`. Latitude of the place the crime occurs.
@@ -97,16 +93,15 @@ weather = rnoaa::meteo_pull_monitors(
     date_min = "2016-01-01",
     date_max = "2017-12-31") %>%
   mutate(
-    name = recode(
-      id, 
-      USW00094728 = "CentralPark_NY", 
-      USW00094789 = "JFK Airport_NY",
-      USW00014732 = "La Guardia_NY"),
+    id=case_when(
+      id=="USW00094728" ~ "CentralPark_NY", 
+      id=="USW00094789" ~ "JFK Airport_NY",
+     id=="USW00014732" ~ "La Guardia_NY"),
     
     
     tmin = tmin / 10,
     tmax = tmax / 10) %>%
-  select(name, id, everything())
+  select(id, everything())
 
 average_weather <- weather %>% 
   group_by(date) %>%
