@@ -244,7 +244,13 @@ crime_hour_plot
 
 ```
 
+We can observe that number of crimes slightly decreases during the month from January to March and 
+remains constant for the rest of year. And number of crimes fluctuate when comparing each day of the week.
+Friday and Wednesday have relatively higher number of crimes in average. When comparing each hour of the day,
+we can see that during the hour from 1AM to 11AM, the number of crimes is lower than the rest of the day, with
+5AM and 6AM have the lowest number of crimes in average. 
 
+After some exploratory analysis, we moved on to statistical analysis.
 
 
 
@@ -259,7 +265,7 @@ distribution between the two years.
 
 And then we want to investigate whether weather is a significant factor on number 
 of crime cases. We combine the two dataset and create a categorical variable 
-according to the weather parameters each day and devided them into four types:
+according to the weather parameters each day and divided them into four types:
 "rainy and snowy", "snowy", "rainy", "not rainy or snowy". After that, we 
 conducted a ANOVA test between number of crimes per day and weather. From the 
 result, we came to conclude that the the average number of crimes per day is 
