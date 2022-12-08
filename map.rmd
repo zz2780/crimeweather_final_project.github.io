@@ -20,6 +20,11 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r}
+library(readxl)
+library(lubridate)
+```
+
 ```{r, message=FALSE, warning=FALSE}
 crime_df = read_csv("data/crime_df.csv")
 head(crime_df)
@@ -44,3 +49,4 @@ crime_plot =
       center = list(lon = -73.9, lat = 40.7)))
 crime_plot
 ```
+
