@@ -33,32 +33,15 @@ options(
 scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 set.seed(1)
+
+crime <- read.csv("data/crime_df.csv")
+
+average_weather <- read.csv("data/weather.csv")
+
+weather_df<-read.csv("data/weather.csv")
 ```
 
-```{r include = FALSE}
-crime_df <- read.csv("data/crime_df.csv")
 
-weather <- read.csv("data/weather.csv")
-
-new_crime_df = crime_df %>%
-  group_by(date,mon,day_of_week)%>%
-  summarize(
-    total_crime = n(),
-    ) 
-
-
-crime_weather = merge(new_crime_df, weather, by = "date")
-crime_weather <- crime_weather %>%
-  mutate(
-    month = factor(mon)
-  )
-
-new_crime_df = crime_df %>%
-  group_by(date,mon,day_of_week)%>%
-  summarize(
-    total_crime = n(),
-    ) 
-```
 ## Motivation
 Based on the Lombroso’s Theory of Crime, natural climatic factors can influence crime rates. The Extreme temperatures sap one’s energy and reduce the passion for crime. The suitable temperatures stimulate one’s nerve like alcohol and makes it easier to commit criminal acts in an excited situation.
 
@@ -66,9 +49,7 @@ In fact, the weather in criminology covers many aspects. Apart from the weather 
 
 
 ## Initial Questions
-* Is frequency of crimes associated with temperature of the day?
-* Is frequency of crimes associated with precipitation/snowfall of the day?
-* Do different times of the day and days of the week have an impact on the association above?
+The initial question we want to investigate is if weather can have an effect on crime rates. As we collected the data, we discovered that the dataset also include the time and date of each crime. This discovery led us to the discussion whether different time of the day or day of the week can impact crime rates. 
 
 ## Data
 
@@ -83,6 +64,34 @@ record contains detailed information of a single crime reported to NYPD.
 In our project, we select the records from 2016-01-01 to 2017-12-31 to do 
 analysis and modeling.
 
+```{r}
+crime_raw <- read.csv("data/nyc_complaint_data.csv")
+crime_df <- crime_raw %>%
+  janitor::clean_names() %>%
+  mutate(
+    date = mdy(cmplnt_fr_dt),
+    hour_of_day = as.POSIXct(cmplnt_fr_tm, format="%H:%M:%OS"),
+    borough = boro_nm,
+    level = law_cat_cd,
+    offense = ofns_desc,
+    offense_classification = pd_desc,
+    place = prem_typ_desc,
+    suspect_age = susp_age_group,
+    suspect_race = factor(susp_race),
+    victim_age = vic_age_group,
+    victim_race = factor(vic_race)) %>%
+  mutate(
+    day_of_week = factor(weekdays(date)),
+    mon = month(date),
+    hour_of_day = hour(hour_of_day)
+  )
+
+
+crime_df <- crime_df %>%
+ select(date:mon, latitude,longitude)
+```
+
+
 For further analysis, we converted the original dataset to make it more readable
 and  selected some key variables:
 
@@ -95,10 +104,8 @@ and  selected some key variables:
   * `place`. Specific description of premises; grocery store, residence,street, etc.
   * `suspect_age`. Suspect’s Age Group.
   * `suspect_race`. Suspect’s Race Description.
-  * `suspect_sex`. Suspect’s Sex Description.
   * `victim_age`. Victim’s Age Group.
   * `victim_race`. Victim’s Race Description.
-  * `victim_sex`. Victim’s Sex Description.
   * `day_of_week`. Day of week that a crime occurs.
   * `mon`. Months in a year that a crime occurs.
   * `latitude`. Latitude of the place the crime occurs.
@@ -108,7 +115,37 @@ Considering that weather may be a reason of committing crime, we used data from
 three weather stations in New York and calculate the mean weather parameters to 
 represent the weather of New York.
 
-Weather data is obtained from website of [NOAA](https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.ncdc:C00861/html)
+Weather data is obtained from website of [NOAA](https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.ncdc:C00861/html).
+
+We selected the three weather stations that can indicate the weather in Manhattan. And we created average_weather dataset to see the mean temperature, percipitation, and snowfall for each day.
+
+```{r}
+weather = rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USW00094789", "USW00014732"),
+    var = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"),
+    date_min = "2016-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    id=case_when(
+      id=="USW00094728" ~ "CentralPark_NY", 
+      id=="USW00094789" ~ "JFK Airport_NY",
+     id=="USW00014732" ~ "La Guardia_NY"),
+    
+    
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(id, everything())
+
+average_weather <- weather %>% 
+  group_by(date) %>%
+  summarise(
+    mean_snow = mean(snwd),
+    mean_prcp = mean(prcp),
+    mean_tmin = mean(tmin),
+    mean_tmax = mean(tmax)
+  ) 
+```
+
 
 The key variables of weather are:
 
@@ -125,6 +162,20 @@ The worse the weather is, the less likely people are to go out and commit crimes
 Here we want to predict number of crimes each day in New York as our outcome. And the precipitation, 
 snow depth, maximum temperature and minimum temperature can be considered as predictors.
 
+First we created a new dataset from the original crime_df dataset, grouped by date, month, and day of the week and summarized the total number of crimes. Then we merged it with weather dataset by date
+```{r}
+new_crime_df = crime_df %>%
+  group_by(date,mon,day_of_week)%>%
+  summarize(
+    total_crime = n(),
+    ) 
+
+crime_weather = merge(new_crime_df, average_weather, by = "date")
+crime_weather <- crime_weather %>%
+  mutate(
+    month = factor(mon)
+  )
+```
 We first checked the distribution of number of crime cases each day in New York.
 ```{r}
 ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()+ 
@@ -134,9 +185,10 @@ ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()+
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
+
 The distribution of daily cases is approximately normally distributed, thus we do not need to transform the value of the outcome.
 
-Then, we use scatter plot to investigate the association between weather and cases/crime.
+Then, we use scatter plot to investigate the association between weather and cases/crime. The predictors for weather included minimum and maximum temperature, percipitation and snowfall.
 
 ```{r}
 ggplot(crime_weather, aes(x = mean_tmax, y = total_crime)) + geom_point()+    labs(title = "The Association between Max temperatures and reported crime", 
@@ -167,7 +219,7 @@ From the plots, we noticed that all of the four predictors may have association
 with the number of cases of crime in New York. Association between crimes and min/max temperature have a more 
 obvious linear trend, whereas that between crimes and precipitation and snow depth have a less obvious trend.
 
-We also want to investigate whether the month and day of week can be predictors.
+We also want to investigate whether the month, day of week, and hour of the day can be predictors.
 ```{r}
 # Crime numbers by month
 
@@ -244,47 +296,347 @@ crime_hour_plot
 
 ```
 
+We can observe that number of crimes slightly decreases during the month from January to March and 
+remains constant for the rest of year. And number of crimes fluctuate when comparing each day of the week.
+Friday and Wednesday have relatively higher number of crimes in average. When comparing each hour of the day,
+we can see that during the hour from 1AM to 11AM, the number of crimes is lower than the rest of the day, with
+5AM and 6AM have the lowest number of crimes in average. 
 
+#### Map
+
+#### Shiny
+The Shiny dashboard reports number and distribution of different offenses in NYC based on selected borough, hour of the day, days of the week, and season of the year.
+
+
+After some exploratory analysis, we moved on to statistical analysis.
 
 
 
 ## Statistical Analysis
 
 #### Statistical test
+
+#### Chi-squared test on year and number of cases each month.
+
 We want to explore more on our data. So we conducted some statistical test.
 First, we conducted a Chi-squared test on year and number of cases each month to 
 check whether the distribution of number of cases per month is different between
-the two years. The result shows that there is a significant difference of 
-distribution between the two years. 
+the two years. 
 
-And then we want to investigate whether weather is a significant factor on number 
-of crime cases. We combine the two dataset and create a categorical variable 
-according to the weather parameters each day and devided them into four types:
-"rainy and snowy", "snowy", "rainy", "not rainy or snowy". After that, we 
-conducted a ANOVA test between number of crimes per day and weather. From the 
-result, we came to conclude that the the average number of crimes per day is 
-significantly different in different weather. 
+$H_0$ : The number distribution of  number of crime cases of each month was the same in 2016 and 2017
+
+$H_1$ : The number distribution of  number of crime cases of each month was different in 2016 and 2017
+
+
+```{r}
+df_1 <- crime_df %>%
+  mutate (
+    year = year(date)
+  )
+
+table(df_1$year, df_1 $mon)%>%
+  knitr::kable(digits = 3)
+```
+
+```{r}
+chisq.test(table(df_1$year, df_1 $mon))
+```
+
+As the result told us, the p-value < 0.05 , therefore we reject the null 
+hypothesis and conclude that the distribution of number of crimes cases
+of each month is significantly different between 2016 and 2017.
+
+#### ANOVA between number of crimes per day and weather
+
+We also concerned about whether weather conditions will affect New York City's 
+crime frequency per day. Therefore it is important to test hypotheses according 
+to different weather conditions and crime cases per day.
+
+At first, we divided the daily weather into four categories (Not rainy or snowy; rainy and snowy; snowy; rainy) according to whetherthe precipitation and rainfall are greater than 0.
+```{r}
+crime_weather_2 <-  crime_weather %>%
+  mutate(weather = case_when(mean_prcp == 0 & mean_snow == 0 ~ 'not_rainy_or_snowy',
+                           mean_prcp >0 & mean_snow >0 ~ 'rainy_and_snowy',
+                           mean_prcp == 0 & mean_snow >0 ~ 'snowy',
+                           mean_prcp >0 & mean_snow == 0 ~ "rainy")) %>%
+  select(date, total_crime,  weather)
+
+crime_weather_2 %>%
+  group_by(weather)%>%
+  summarise(mean_daily_crime = mean(total_crime),
+  Standard_deviation = sd(total_crime)) %>%
+  knitr::kable(digits = 3)
+
+
+```
+
+
+We then conducted one-way ANOVA to test if the true mean daily crime cases of 
+different weather is the same.
+
+$H_0$: There is no difference in the average number of crimes per day under 
+different weather conditions in New York.
+
+$H_1$: At least the average number of crimes per day under two different weather 
+conditions are different.
+
+First, Let's create box-plot of our data.
+
+```{r}
+ggplot(data = crime_weather_2, aes(x = weather, y = total_crime, fill = weather)) + geom_boxplot()
+```
+
+From the plot, the distribution of daily crime number seems different in 
+different weather.
+
+And we conducted a ANOVA test
+```{r}
+res.aov <- aov(total_crime ~ weather, data = crime_weather_2)
+summary(res.aov) 
+```
+
+From the result, the p-value is smaller than 0.05,  therefore we concluded that 
+the average number of crimes per day is correlated to weather. 
+
+#### Chi-squared test on weather and number of different types of offense 
+
+We want to investigate whether weather is a significant factor on number 
+of offenses. We combine the two dataset and create a categorical variable 
+according to the weather parameters each day and divided them into four types:
+"rainy and snowy", "snowy", "rainy", "not rainy or snowy". 
+
+```{r}
+crime_weather_3 = crime %>%
+  merge(weather_df , by = "date")%>%
+  mutate(weather = case_when(mean_prcp == 0 & mean_snow == 0 ~ 'not_rainy_or_snowy',
+                           mean_prcp >0 & mean_snow >0 ~ 'rainy_and_snowy',
+                           mean_prcp == 0 & mean_snow >0 ~ 'snowy',
+                           mean_prcp >0 & mean_snow == 0 ~ "rainy")) 
+
+df_crime_weather <- crime_weather_3 %>%
+  group_by(weather, offense) %>%
+  summarise(Total_number_of_offense = n()) %>%
+  pivot_wider(
+    names_from = "weather",
+    values_from = "Total_number_of_offense"
+  ) 
+df_crime_weather[is.na(df_crime_weather)] = 0
+df_crime_weather %>%
+  head(20) %>%
+  knitr::kable(digits = 3)
+```
 
 We also conducted a Chi-squared test on number of different types of crimes and 
-weather. We learned from the result that there is not a homogeneity in the types 
+weather. 
+
+$H_0$ : The number distribution of each type of crime was the same in different weathers.
+
+$H_1$ : The number distribution of each type of crime was different in different weathers.
+
+```{r}
+chisq.test(table(crime_weather_3$weather, crime_weather_3$offense))
+```
+
+We can see p-value is smaller than 0.05, so we reject the null hypothesis and 
+conclude that there's at least one type of weather's proportions of number of 
+different type of crimes is different from others at 0.05 significant level.  
+We learned from the result that there is not a homogeneity in the types 
 of crimes for each type of weather. So we conclude that weather may also has an 
 association with the type of crimes.
 
-#### Modeling
 
-We already know that weather may influence crimes from previous analysis. So we 
-decided to build a model to predict daily crimes cases. We proposed following
-models:
+## Modeling
 
-* Model1: total_crime ~  day_of_week + mean_tmax + mean_prcp + mean_snow
-* Model2: total_crime ~ month +day_of_week +  mean_tmax + mean_prcp + mean_snow
-* Model3: total_crime ~  month +day_of_week +  mean_tmax + mean_prcp + mean_snow + mean_tmax*day_of_week
-* Model4: total_crime ~ mean_tmax + mean_prcp + mean_snow
+Based on some publicly available information, we knew that weather affect crime rate. 
+For example, the hotter the weather is, the more likely people are to commit crimes. 
+The worse the weather is, the less likely people are to go out and commit crimes. 
+Here we want to predict number of crimes each day in New York as our outcome. And the precipitation, 
+snow depth, maximum temperature and minimum temperature can be considered as predictors.
 
-We use cross validation to compare the four models and performed a diagnostics 
-and we concluded that Model3 is the best and it meet the model assumptions. 
-We should select month, day of week, maximum temperature, precipitation, snow depth 
-and a interaction term between temperature as our predictors.
+
+```{r include = FALSE}
+crime_df <- read.csv("data/crime_df.csv")
+
+weather <- read.csv("data/weather.csv")
+
+new_crime_df = crime_df %>%
+  group_by(date,mon,day_of_week)%>%
+  summarize(
+    total_crime = n(),
+    ) 
+
+
+crime_weather = merge(new_crime_df, weather, by = "date")
+crime_weather <- crime_weather %>%
+  mutate(
+    month = factor(mon)
+  )
+```
+
+First, let's check the distribution of number of crime cases each day in New York.
+
+```{r}
+ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()+ 
+  labs(title = "The distribution of daily cases", 
+       y = "Counts", 
+       x = "Number of crimes per day")+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+From the distribution of daily cases, we noticed that it is approximately normally distributed, therefore we don't need to transform the value of the outcome.
+
+
+Then, we use scatter plot to investigate the association between weather and cases/crime.
+```{r}
+ggplot(crime_weather, aes(x = mean_tmax, y = total_crime)) + geom_point()+    labs(title = "The Association between Max temperatures and reported crime", 
+       y = "Total Crime reported", 
+       x = "Max temperatures of a day")+
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+ggplot(crime_weather, aes(x = mean_tmin, y = total_crime)) + geom_point()+    labs(title = "The Association between Min temperatures and reported crime", 
+       y = "Total Crime reported", 
+       x = "Min temperatures of a day")+
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+ggplot(crime_weather, aes(x = mean_prcp, y = total_crime)) + geom_point()+    labs(title = "The Association between precipitation and reported crime",
+       y = "Total Crime reported", 
+       x = "Precipitation(tenths of mm)")+
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()+    labs(title = "The Association between snowfall and reported crime",
+       y = "Total Crime reported", 
+       x = "Snow depth(mm)")+
+    theme(plot.title = element_text(hjust = 0.5))
+```
+ 
+From the plots, we noticed that all of the four predictors may have association 
+with the number of cases of crime in New York, So I proposed the following models. 
+We also want to investigate whether the month and day of week can be predictors.
+
+#### Fitting Model
+Firstly, I use month, weekdays and all weather data as predictors
+```{r}
+full_model = lm(total_crime ~ month + day_of_week + mean_tmin + mean_tmax + mean_prcp + mean_snow, data = crime_weather)
+summary(full_model) %>%
+  broom::tidy() %>%
+  knitr::kable(digits = 2)
+
+```
+
+I noticed that both tmax and tmin are not significant, which may be attributed to their
+correlation, so I calculated the VIF. 
+
+```{r}
+vif(full_model) %>%
+  knitr::kable()
+```
+
+It is obvious that the VIF of tmin and tmax is high, so I chose to drop tmin. Besides,
+I found that some months are not significantly different from the reference category.
+So, what if we drop the month?
+
+The second proposed model is total_crime ~  day_of_week + mean_tmax + mean_prcp + mean_snow
+```{r}
+model1 = lm(total_crime ~  day_of_week + mean_tmax + mean_prcp + mean_snow, data = crime_weather)
+summary(model1) %>%
+  broom::tidy() %>%
+  knitr::kable(digits = 2)
+```
+This time, the tmax becomes significant. And it has a positive effect on crime rate, 
+which validate our assumption. Besides, all other variables are significant. 
+
+
+But we noticed that some months are significantly different from reference catergory, so we want to compare model1 and model with month.
+```{r}
+model2 = lm(total_crime ~ month +day_of_week +  mean_tmax + mean_prcp + mean_snow, data = crime_weather)
+summary(model2) %>%
+  broom::tidy() %>%
+  knitr::kable(digits = 2)
+
+anova(model1, model2)
+```
+We use ANOVA to compare the two models. Since p-value is smaller than 0.05, we should include month in our model.
+
+We also want to try to include a interaction term in our model.
+```{r}
+model3 <- lm(total_crime ~  month +day_of_week +  mean_tmax + mean_prcp + mean_snow + mean_tmax*day_of_week, data = crime_weather )
+summary(model3) %>%
+    broom::tidy() %>%
+  knitr::kable(digits = 2)
+```
+In model 3 , we assume that there is an interaction between temperature and day of week. However, some of the interaction term are not significant.
+
+We also want to know whether to include months and weekdays in our model.
+```{r}
+model4 <- lm(total_crime ~ mean_tmax + mean_prcp + mean_snow, data = crime_weather)
+summary(model4) %>%
+  broom::tidy() %>%
+  knitr::kable(digits = 2)
+```
+
+#### Cross Validation
+We want to decide which model is the best to predict the daily number of crime cases in New York. We use cross validation to compare the models.
+```{r}
+cv_df <- 
+  crossv_mc(crime_weather, 100) %>%  
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble)
+  )
+```
+
+```{r}
+cv_df <- 
+  cv_df %>% 
+  mutate(
+    model1 = map( train, ~lm(total_crime ~ month + day_of_week + mean_tmax + mean_prcp + mean_snow, data = crime_weather)),
+    model2 =  map( train, ~lm(total_crime ~ day_of_week +  mean_tmax + mean_prcp+mean_snow, data = crime_weather)),
+    model3 =  map( train, ~lm(total_crime ~ month +day_of_week +  mean_tmax + mean_prcp + mean_snow +mean_tmax*day_of_week, data = crime_weather)),
+    model4 = map( train, ~lm( total_crime ~ mean_tmax + mean_prcp + mean_snow, data = crime_weather))) %>%
+   mutate(
+    rmse_model1 = map2_dbl( model1,  test, ~rmse(model = .x, data =.y)),
+    rmse_model2 = map2_dbl( model2,  test, ~rmse(model = .x, data =.y)),
+    rmse_model3 = map2_dbl( model3,  test, ~rmse(model = .x, data =.y)),
+    rmse_model4 = map2_dbl( model4, test, ~rmse(model = .x, data =.y))
+  ) 
+```
+
+
+```{r}
+cv_df %>% 
+  select(starts_with("rmse")) %>% 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") %>% 
+  mutate(model = fct_inorder(model)) %>% 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()
+
+cv_df %>% 
+  summarize(
+    rmse_1 = mean(rmse_model1),
+    rmse_2 = mean(rmse_model2),
+    rmse_3 = mean(rmse_model3),
+    rmse_4 = mean(rmse_model4)
+  ) %>%
+  knitr::kable()
+```
+#### Model Diagnostics
+
+```{r}
+par(mfrow = c(2,2))
+plot(model3)
+```
+
+
+Model3's root means square error is the smallest in the four models, which may indicates it is the best model in the four models. 
+
+We then did a model diagnostic to check if the model assumptions. Although there are some outliers as shown in the plots, the Q-Q plot, residuals VS fitted plot and Scale-Location plot indicates the residuals are normally distributed and variance of residuals is constant. Therefore, model3 could be useful for predicting the total number of crime cases each day in New York, which means month, day of week, temperature, precipitation , snow depth and a interaction term between day of week and temperature are all useful predictors if we want to predict the number of crime cases on a specific day in New York.
+
 
 
 

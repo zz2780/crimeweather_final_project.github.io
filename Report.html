@@ -409,13 +409,11 @@ at different times of the day and on different days of the week.</p>
 </div>
 <div id="initial-questions" class="section level2">
 <h2>Initial Questions</h2>
-<ul>
-<li>Is frequency of crimes associated with temperature of the day?</li>
-<li>Is frequency of crimes associated with precipitation/snowfall of the
-day?</li>
-<li>Do different times of the day and days of the week have an impact on
-the association above?</li>
-</ul>
+<p>The initial question we want to investigate is if weather can have an
+effect on crime rates. As we collected the data, we discovered that the
+dataset also include the time and date of each crime. This discovery led
+us to the discussion whether different time of the day or day of the
+week can impact crime rates.</p>
 </div>
 <div id="data" class="section level2">
 <h2>Data</h2>
@@ -430,6 +428,30 @@ crimes reported to the New York City Police Department (NYPD) from 1910
 to 2021. Each record contains detailed information of a single crime
 reported to NYPD. In our project, we select the records from 2016-01-01
 to 2017-12-31 to do analysis and modeling.</p>
+<pre class="r"><code>crime_raw &lt;- read.csv(&quot;data/nyc_complaint_data.csv&quot;)
+crime_df &lt;- crime_raw %&gt;%
+  janitor::clean_names() %&gt;%
+  mutate(
+    date = mdy(cmplnt_fr_dt),
+    hour_of_day = as.POSIXct(cmplnt_fr_tm, format=&quot;%H:%M:%OS&quot;),
+    borough = boro_nm,
+    level = law_cat_cd,
+    offense = ofns_desc,
+    offense_classification = pd_desc,
+    place = prem_typ_desc,
+    suspect_age = susp_age_group,
+    suspect_race = factor(susp_race),
+    victim_age = vic_age_group,
+    victim_race = factor(vic_race)) %&gt;%
+  mutate(
+    day_of_week = factor(weekdays(date)),
+    mon = month(date),
+    hour_of_day = hour(hour_of_day)
+  )
+
+
+crime_df &lt;- crime_df %&gt;%
+ select(date:mon, latitude,longitude)</code></pre>
 <p>For further analysis, we converted the original dataset to make it
 more readable and selected some key variables:</p>
 <ul>
@@ -445,10 +467,8 @@ classification of offense.</li>
 residence,street, etc.</li>
 <li><code>suspect_age</code>. Suspect’s Age Group.</li>
 <li><code>suspect_race</code>. Suspect’s Race Description.</li>
-<li><code>suspect_sex</code>. Suspect’s Sex Description.</li>
 <li><code>victim_age</code>. Victim’s Age Group.</li>
 <li><code>victim_race</code>. Victim’s Race Description.</li>
-<li><code>victim_sex</code>. Victim’s Sex Description.</li>
 <li><code>day_of_week</code>. Day of week that a crime occurs.</li>
 <li><code>mon</code>. Months in a year that a crime occurs.</li>
 <li><code>latitude</code>. Latitude of the place the crime occurs.</li>
@@ -459,7 +479,34 @@ occurs.</li>
 data from three weather stations in New York and calculate the mean
 weather parameters to represent the weather of New York.</p>
 <p>Weather data is obtained from website of <a
-href="https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.ncdc:C00861/html">NOAA</a></p>
+href="https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.ncdc:C00861/html">NOAA</a>.</p>
+<p>We selected the three weather stations that can indicate the weather
+in Manhattan. And we created average_weather dataset to see the mean
+temperature, percipitation, and snowfall for each day.</p>
+<pre class="r"><code>weather = rnoaa::meteo_pull_monitors(
+    c(&quot;USW00094728&quot;, &quot;USW00094789&quot;, &quot;USW00014732&quot;),
+    var = c(&quot;PRCP&quot;, &quot;SNOW&quot;, &quot;SNWD&quot;, &quot;TMAX&quot;, &quot;TMIN&quot;),
+    date_min = &quot;2016-01-01&quot;,
+    date_max = &quot;2017-12-31&quot;) %&gt;%
+  mutate(
+    id=case_when(
+      id==&quot;USW00094728&quot; ~ &quot;CentralPark_NY&quot;, 
+      id==&quot;USW00094789&quot; ~ &quot;JFK Airport_NY&quot;,
+     id==&quot;USW00014732&quot; ~ &quot;La Guardia_NY&quot;),
+    
+    
+    tmin = tmin / 10,
+    tmax = tmax / 10) %&gt;%
+  select(id, everything())
+
+average_weather &lt;- weather %&gt;% 
+  group_by(date) %&gt;%
+  summarise(
+    mean_snow = mean(snwd),
+    mean_prcp = mean(prcp),
+    mean_tmin = mean(tmin),
+    mean_tmax = mean(tmax)
+  ) </code></pre>
 <p>The key variables of weather are:</p>
 <ul>
 <li><code>mean_snow</code>. snow depth(mm).</li>
@@ -477,6 +524,20 @@ likely people are to go out and commit crimes. Here we want to predict
 number of crimes each day in New York as our outcome. And the
 precipitation, snow depth, maximum temperature and minimum temperature
 can be considered as predictors.</p>
+<p>First we created a new dataset from the original crime_df dataset,
+grouped by date, month, and day of the week and summarized the total
+number of crimes. Then we merged it with weather dataset by date</p>
+<pre class="r"><code>new_crime_df = crime_df %&gt;%
+  group_by(date,mon,day_of_week)%&gt;%
+  summarize(
+    total_crime = n(),
+    ) 
+
+crime_weather = merge(new_crime_df, average_weather, by = &quot;date&quot;)
+crime_weather &lt;- crime_weather %&gt;%
+  mutate(
+    month = factor(mon)
+  )</code></pre>
 <p>We first checked the distribution of number of crime cases each day
 in New York.</p>
 <pre class="r"><code>ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()+ 
@@ -484,39 +545,40 @@ in New York.</p>
        y = &quot;Counts&quot;, 
        x = &quot;Number of crimes per day&quot;)+
   theme(plot.title = element_text(hjust = 0.5))</code></pre>
-<p><img src="Report_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
+<p><img src="Report_files/figure-html/unnamed-chunk-5-1.png" width="768" /></p>
 <p>The distribution of daily cases is approximately normally
 distributed, thus we do not need to transform the value of the
 outcome.</p>
 <p>Then, we use scatter plot to investigate the association between
-weather and cases/crime.</p>
+weather and cases/crime. The predictors for weather included minimum and
+maximum temperature, percipitation and snowfall.</p>
 <pre class="r"><code>ggplot(crime_weather, aes(x = mean_tmax, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between Max temperatures and reported crime&quot;, 
        y = &quot;Total Crime reported&quot;, 
        x = &quot;Max temperatures of a day&quot;)+
     theme(plot.title = element_text(hjust = 0.5))</code></pre>
-<p><img src="Report_files/figure-html/unnamed-chunk-4-1.png" width="768" /></p>
+<p><img src="Report_files/figure-html/unnamed-chunk-6-1.png" width="768" /></p>
 <pre class="r"><code>ggplot(crime_weather, aes(x = mean_tmin, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between Min temperatures and reported crime&quot;, 
        y = &quot;Total Crime reported&quot;, 
        x = &quot;Min temperatures of a day&quot;)+
     theme(plot.title = element_text(hjust = 0.5))</code></pre>
-<p><img src="Report_files/figure-html/unnamed-chunk-4-2.png" width="768" /></p>
+<p><img src="Report_files/figure-html/unnamed-chunk-6-2.png" width="768" /></p>
 <pre class="r"><code>ggplot(crime_weather, aes(x = mean_prcp, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between precipitation and reported crime&quot;,
        y = &quot;Total Crime reported&quot;, 
        x = &quot;Precipitation(tenths of mm)&quot;)+
     theme(plot.title = element_text(hjust = 0.5))</code></pre>
-<p><img src="Report_files/figure-html/unnamed-chunk-4-3.png" width="768" /></p>
+<p><img src="Report_files/figure-html/unnamed-chunk-6-3.png" width="768" /></p>
 <pre class="r"><code>ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between snowfall and reported crime&quot;,
        y = &quot;Total Crime reported&quot;, 
        x = &quot;Snow depth(mm)&quot;)+
     theme(plot.title = element_text(hjust = 0.5))</code></pre>
-<p><img src="Report_files/figure-html/unnamed-chunk-4-4.png" width="768" /></p>
+<p><img src="Report_files/figure-html/unnamed-chunk-6-4.png" width="768" /></p>
 <p>From the plots, we noticed that all of the four predictors may have
 association with the number of cases of crime in New York. Association
 between crimes and min/max temperature have a more obvious linear trend,
 whereas that between crimes and precipitation and snow depth have a less
 obvious trend.</p>
-<p>We also want to investigate whether the month and day of week can be
-predictors.</p>
+<p>We also want to investigate whether the month, day of week, and hour
+of the day can be predictors.</p>
 <pre class="r"><code># Crime numbers by month
 
 crime_month = new_crime_df %&gt;% 
@@ -538,7 +600,7 @@ mp = ggplot(crime_month,
    theme(legend.position = &quot;off&quot;, plot.title=element_text(hjust=0.5))
  
 mp</code></pre>
-<p><img src="Report_files/figure-html/unnamed-chunk-5-1.png" width="768" /></p>
+<p><img src="Report_files/figure-html/unnamed-chunk-7-1.png" width="768" /></p>
 <pre class="r"><code>#Crime and weekdays
 
 crime_weekday = new_crime_df %&gt;% 
@@ -566,7 +628,7 @@ weekday = ggplot(crime_weekday,
   theme(legend.position = &quot;off&quot;, plot.title=element_text(hjust=0.5))
   
 weekday</code></pre>
-<p><img src="Report_files/figure-html/unnamed-chunk-5-2.png" width="768" /></p>
+<p><img src="Report_files/figure-html/unnamed-chunk-7-2.png" width="768" /></p>
 <pre class="r"><code>#Crime and hours
 
 crime_hour = crime_df %&gt;%
@@ -589,50 +651,1302 @@ crime_hour_plot = ggplot(crime_hour,
   theme(legend.position = &quot;off&quot;, plot.title=element_text(hjust=0.5))
   
 crime_hour_plot</code></pre>
-<p><img src="Report_files/figure-html/unnamed-chunk-5-3.png" width="768" /></p>
+<p><img src="Report_files/figure-html/unnamed-chunk-7-3.png" width="768" /></p>
+<p>We can observe that number of crimes slightly decreases during the
+month from January to March and remains constant for the rest of year.
+And number of crimes fluctuate when comparing each day of the week.
+Friday and Wednesday have relatively higher number of crimes in average.
+When comparing each hour of the day, we can see that during the hour
+from 1AM to 11AM, the number of crimes is lower than the rest of the
+day, with 5AM and 6AM have the lowest number of crimes in average.</p>
+<div id="map" class="section level4">
+<h4>Map</h4>
+</div>
+<div id="shiny" class="section level4">
+<h4>Shiny</h4>
+<p>The Shiny dashboard reports number and distribution of different
+offenses in NYC based on selected borough, hour of the day, days of the
+week, and season of the year.</p>
+<p>After some exploratory analysis, we moved on to statistical
+analysis.</p>
+</div>
 </div>
 <div id="statistical-analysis" class="section level2">
 <h2>Statistical Analysis</h2>
 <div id="statistical-test" class="section level4">
 <h4>Statistical test</h4>
+</div>
+<div id="chi-squared-test-on-year-and-number-of-cases-each-month."
+class="section level4">
+<h4>Chi-squared test on year and number of cases each month.</h4>
 <p>We want to explore more on our data. So we conducted some statistical
 test. First, we conducted a Chi-squared test on year and number of cases
 each month to check whether the distribution of number of cases per
-month is different between the two years. The result shows that there is
-a significant difference of distribution between the two years.</p>
-<p>And then we want to investigate whether weather is a significant
-factor on number of crime cases. We combine the two dataset and create a
-categorical variable according to the weather parameters each day and
-devided them into four types: “rainy and snowy”, “snowy”, “rainy”, “not
-rainy or snowy”. After that, we conducted a ANOVA test between number of
-crimes per day and weather. From the result, we came to conclude that
-the the average number of crimes per day is significantly different in
-different weather.</p>
-<p>We also conducted a Chi-squared test on number of different types of
-crimes and weather. We learned from the result that there is not a
-homogeneity in the types of crimes for each type of weather. So we
-conclude that weather may also has an association with the type of
-crimes.</p>
+month is different between the two years.</p>
+<p><span class="math inline">\(H_0\)</span> : The number distribution of
+number of crime cases of each month was the same in 2016 and 2017</p>
+<p><span class="math inline">\(H_1\)</span> : The number distribution of
+number of crime cases of each month was different in 2016 and 2017</p>
+<pre class="r"><code>df_1 &lt;- crime_df %&gt;%
+  mutate (
+    year = year(date)
+  )
+
+table(df_1$year, df_1 $mon)%&gt;%
+  knitr::kable(digits = 3)</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">1</th>
+<th align="right">2</th>
+<th align="right">3</th>
+<th align="right">4</th>
+<th align="right">5</th>
+<th align="right">6</th>
+<th align="right">7</th>
+<th align="right">8</th>
+<th align="right">9</th>
+<th align="right">10</th>
+<th align="right">11</th>
+<th align="right">12</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2016</td>
+<td align="right">5143</td>
+<td align="right">4537</td>
+<td align="right">5224</td>
+<td align="right">5248</td>
+<td align="right">5510</td>
+<td align="right">5450</td>
+<td align="right">5482</td>
+<td align="right">5660</td>
+<td align="right">5309</td>
+<td align="right">5394</td>
+<td align="right">4978</td>
+<td align="right">4998</td>
+</tr>
+<tr class="even">
+<td align="left">2017</td>
+<td align="right">5226</td>
+<td align="right">4370</td>
+<td align="right">4912</td>
+<td align="right">5097</td>
+<td align="right">5589</td>
+<td align="right">5481</td>
+<td align="right">5753</td>
+<td align="right">5696</td>
+<td align="right">5756</td>
+<td align="right">5996</td>
+<td align="right">5667</td>
+<td align="right">6595</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>chisq.test(table(df_1$year, df_1 $mon))</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test
+## 
+## data:  table(df_1$year, df_1$mon)
+## X-squared = 258, df = 11, p-value &lt;2e-16</code></pre>
+<p>As the result told us, the p-value &lt; 0.05 , therefore we reject
+the null hypothesis and conclude that the distribution of number of
+crimes cases of each month is significantly different between 2016 and
+2017.</p>
 </div>
-<div id="modeling" class="section level4">
-<h4>Modeling</h4>
-<p>We already know that weather may influence crimes from previous
-analysis. So we decided to build a model to predict daily crimes cases.
-We proposed following models:</p>
-<ul>
-<li>Model1: total_crime ~ day_of_week + mean_tmax + mean_prcp +
-mean_snow</li>
-<li>Model2: total_crime ~ month +day_of_week + mean_tmax + mean_prcp +
-mean_snow</li>
-<li>Model3: total_crime ~ month +day_of_week + mean_tmax + mean_prcp +
-mean_snow + mean_tmax*day_of_week</li>
-<li>Model4: total_crime ~ mean_tmax + mean_prcp + mean_snow</li>
-</ul>
-<p>We use cross validation to compare the four models and performed a
-diagnostics and we concluded that Model3 is the best and it meet the
-model assumptions. We should select month, day of week, maximum
-temperature, precipitation, snow depth and a interaction term between
-temperature as our predictors.</p>
+<div id="anova-between-number-of-crimes-per-day-and-weather"
+class="section level4">
+<h4>ANOVA between number of crimes per day and weather</h4>
+<p>We also concerned about whether weather conditions will affect New
+York City’s crime frequency per day. Therefore it is important to test
+hypotheses according to different weather conditions and crime cases per
+day.</p>
+<p>At first, we divided the daily weather into four categories (Not
+rainy or snowy; rainy and snowy; snowy; rainy) according to whetherthe
+precipitation and rainfall are greater than 0.</p>
+<pre class="r"><code>crime_weather_2 &lt;-  crime_weather %&gt;%
+  mutate(weather = case_when(mean_prcp == 0 &amp; mean_snow == 0 ~ &#39;not_rainy_or_snowy&#39;,
+                           mean_prcp &gt;0 &amp; mean_snow &gt;0 ~ &#39;rainy_and_snowy&#39;,
+                           mean_prcp == 0 &amp; mean_snow &gt;0 ~ &#39;snowy&#39;,
+                           mean_prcp &gt;0 &amp; mean_snow == 0 ~ &quot;rainy&quot;)) %&gt;%
+  select(date, total_crime,  weather)
+
+crime_weather_2 %&gt;%
+  group_by(weather)%&gt;%
+  summarise(mean_daily_crime = mean(total_crime),
+  Standard_deviation = sd(total_crime)) %&gt;%
+  knitr::kable(digits = 3)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">weather</th>
+<th align="right">mean_daily_crime</th>
+<th align="right">Standard_deviation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">not_rainy_or_snowy</td>
+<td align="right">180</td>
+<td align="right">27.7</td>
+</tr>
+<tr class="even">
+<td align="left">rainy</td>
+<td align="right">176</td>
+<td align="right">25.4</td>
+</tr>
+<tr class="odd">
+<td align="left">rainy_and_snowy</td>
+<td align="right">150</td>
+<td align="right">36.3</td>
+</tr>
+<tr class="even">
+<td align="left">snowy</td>
+<td align="right">156</td>
+<td align="right">21.1</td>
+</tr>
+</tbody>
+</table>
+<p>We then conducted one-way ANOVA to test if the true mean daily crime
+cases of different weather is the same.</p>
+<p><span class="math inline">\(H_0\)</span>: There is no difference in
+the average number of crimes per day under different weather conditions
+in New York.</p>
+<p><span class="math inline">\(H_1\)</span>: At least the average number
+of crimes per day under two different weather conditions are
+different.</p>
+<p>First, Let’s create box-plot of our data.</p>
+<pre class="r"><code>ggplot(data = crime_weather_2, aes(x = weather, y = total_crime, fill = weather)) + geom_boxplot()</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-11-1.png" width="768" /></p>
+<p>From the plot, the distribution of daily crime number seems different
+in different weather.</p>
+<p>And we conducted a ANOVA test</p>
+<pre class="r"><code>res.aov &lt;- aov(total_crime ~ weather, data = crime_weather_2)
+summary(res.aov) </code></pre>
+<pre><code>##              Df Sum Sq Mean Sq F value  Pr(&gt;F)    
+## weather       3  31642   10547    14.5 3.7e-09 ***
+## Residuals   727 530437     730                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>From the result, the p-value is smaller than 0.05, therefore we
+concluded that the average number of crimes per day is correlated to
+weather.</p>
+</div>
+<div
+id="chi-squared-test-on-weather-and-number-of-different-types-of-offense"
+class="section level4">
+<h4>Chi-squared test on weather and number of different types of
+offense</h4>
+<p>We want to investigate whether weather is a significant factor on
+number of offenses. We combine the two dataset and create a categorical
+variable according to the weather parameters each day and divided them
+into four types: “rainy and snowy”, “snowy”, “rainy”, “not rainy or
+snowy”.</p>
+<pre class="r"><code>crime_weather_3 = crime %&gt;%
+  merge(weather_df , by = &quot;date&quot;)%&gt;%
+  mutate(weather = case_when(mean_prcp == 0 &amp; mean_snow == 0 ~ &#39;not_rainy_or_snowy&#39;,
+                           mean_prcp &gt;0 &amp; mean_snow &gt;0 ~ &#39;rainy_and_snowy&#39;,
+                           mean_prcp == 0 &amp; mean_snow &gt;0 ~ &#39;snowy&#39;,
+                           mean_prcp &gt;0 &amp; mean_snow == 0 ~ &quot;rainy&quot;)) 
+
+df_crime_weather &lt;- crime_weather_3 %&gt;%
+  group_by(weather, offense) %&gt;%
+  summarise(Total_number_of_offense = n()) %&gt;%
+  pivot_wider(
+    names_from = &quot;weather&quot;,
+    values_from = &quot;Total_number_of_offense&quot;
+  ) 
+df_crime_weather[is.na(df_crime_weather)] = 0
+df_crime_weather %&gt;%
+  head(20) %&gt;%
+  knitr::kable(digits = 3)</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="44%" />
+<col width="22%" />
+<col width="7%" />
+<col width="19%" />
+<col width="7%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">offense</th>
+<th align="right">not_rainy_or_snowy</th>
+<th align="right">rainy</th>
+<th align="right">rainy_and_snowy</th>
+<th align="right">snowy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"></td>
+<td align="right">3</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">ADMINISTRATIVE CODE</td>
+<td align="right">142</td>
+<td align="right">94</td>
+<td align="right">5</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">ADMINISTRATIVE CODES</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">AGRICULTURE &amp; MRKTS LAW-UNCLASSIFIED</td>
+<td align="right">16</td>
+<td align="right">10</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">ALCOHOLIC BEVERAGE CONTROL LAW</td>
+<td align="right">15</td>
+<td align="right">7</td>
+<td align="right">0</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">ANTICIPATORY OFFENSES</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">ARSON</td>
+<td align="right">110</td>
+<td align="right">55</td>
+<td align="right">4</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">ASSAULT 3 &amp; RELATED OFFENSES</td>
+<td align="right">8185</td>
+<td align="right">4708</td>
+<td align="right">329</td>
+<td align="right">492</td>
+</tr>
+<tr class="odd">
+<td align="left">BURGLAR’S TOOLS</td>
+<td align="right">44</td>
+<td align="right">20</td>
+<td align="right">4</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">BURGLARY</td>
+<td align="right">1949</td>
+<td align="right">1199</td>
+<td align="right">83</td>
+<td align="right">127</td>
+</tr>
+<tr class="odd">
+<td align="left">CHILD ABANDONMENT/NON SUPPORT</td>
+<td align="right">7</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">CRIMINAL MISCHIEF &amp; RELATED OF</td>
+<td align="right">7904</td>
+<td align="right">4688</td>
+<td align="right">331</td>
+<td align="right">415</td>
+</tr>
+<tr class="odd">
+<td align="left">CRIMINAL TRESPASS</td>
+<td align="right">516</td>
+<td align="right">336</td>
+<td align="right">35</td>
+<td align="right">47</td>
+</tr>
+<tr class="even">
+<td align="left">DANGEROUS DRUGS</td>
+<td align="right">3602</td>
+<td align="right">1935</td>
+<td align="right">147</td>
+<td align="right">210</td>
+</tr>
+<tr class="odd">
+<td align="left">DANGEROUS WEAPONS</td>
+<td align="right">1550</td>
+<td align="right">858</td>
+<td align="right">80</td>
+<td align="right">88</td>
+</tr>
+<tr class="even">
+<td align="left">DISORDERLY CONDUCT</td>
+<td align="right">14</td>
+<td align="right">5</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">ENDAN WELFARE INCOMP</td>
+<td align="right">4</td>
+<td align="right">7</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">ESCAPE 3</td>
+<td align="right">3</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">FELONY ASSAULT</td>
+<td align="right">3257</td>
+<td align="right">1819</td>
+<td align="right">127</td>
+<td align="right">195</td>
+</tr>
+<tr class="even">
+<td align="left">FORGERY</td>
+<td align="right">975</td>
+<td align="right">504</td>
+<td align="right">44</td>
+<td align="right">57</td>
+</tr>
+</tbody>
+</table>
+<p>We also conducted a Chi-squared test on number of different types of
+crimes and weather.</p>
+<p><span class="math inline">\(H_0\)</span> : The number distribution of
+each type of crime was the same in different weathers.</p>
+<p><span class="math inline">\(H_1\)</span> : The number distribution of
+each type of crime was different in different weathers.</p>
+<pre class="r"><code>chisq.test(table(crime_weather_3$weather, crime_weather_3$offense))</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test
+## 
+## data:  table(crime_weather_3$weather, crime_weather_3$offense)
+## X-squared = 224, df = 171, p-value = 0.004</code></pre>
+<p>We can see p-value is smaller than 0.05, so we reject the null
+hypothesis and conclude that there’s at least one type of weather’s
+proportions of number of different type of crimes is different from
+others at 0.05 significant level.<br />
+We learned from the result that there is not a homogeneity in the types
+of crimes for each type of weather. So we conclude that weather may also
+has an association with the type of crimes.</p>
+</div>
+</div>
+<div id="modeling" class="section level2">
+<h2>Modeling</h2>
+<p>Based on some publicly available information, we knew that weather
+affect crime rate. For example, the hotter the weather is, the more
+likely people are to commit crimes. The worse the weather is, the less
+likely people are to go out and commit crimes. Here we want to predict
+number of crimes each day in New York as our outcome. And the
+precipitation, snow depth, maximum temperature and minimum temperature
+can be considered as predictors.</p>
+<p>First, let’s check the distribution of number of crime cases each day
+in New York.</p>
+<pre class="r"><code>ggplot(data = crime_weather,aes(x = total_crime)) + geom_histogram()+ 
+  labs(title = &quot;The distribution of daily cases&quot;, 
+       y = &quot;Counts&quot;, 
+       x = &quot;Number of crimes per day&quot;)+
+  theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-16-1.png" width="768" /></p>
+<p>From the distribution of daily cases, we noticed that it is
+approximately normally distributed, therefore we don’t need to transform
+the value of the outcome.</p>
+<p>Then, we use scatter plot to investigate the association between
+weather and cases/crime.</p>
+<pre class="r"><code>ggplot(crime_weather, aes(x = mean_tmax, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between Max temperatures and reported crime&quot;, 
+       y = &quot;Total Crime reported&quot;, 
+       x = &quot;Max temperatures of a day&quot;)+
+    theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-17-1.png" width="768" /></p>
+<pre class="r"><code>ggplot(crime_weather, aes(x = mean_tmin, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between Min temperatures and reported crime&quot;, 
+       y = &quot;Total Crime reported&quot;, 
+       x = &quot;Min temperatures of a day&quot;)+
+    theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-17-2.png" width="768" /></p>
+<pre class="r"><code>ggplot(crime_weather, aes(x = mean_prcp, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between precipitation and reported crime&quot;,
+       y = &quot;Total Crime reported&quot;, 
+       x = &quot;Precipitation(tenths of mm)&quot;)+
+    theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-17-3.png" width="768" /></p>
+<pre class="r"><code>ggplot(crime_weather, aes(x = mean_snow, y = total_crime)) + geom_point()+    labs(title = &quot;The Association between snowfall and reported crime&quot;,
+       y = &quot;Total Crime reported&quot;, 
+       x = &quot;Snow depth(mm)&quot;)+
+    theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-17-4.png" width="768" /></p>
+<p>From the plots, we noticed that all of the four predictors may have
+association with the number of cases of crime in New York, So I proposed
+the following models. We also want to investigate whether the month and
+day of week can be predictors.</p>
+<div id="fitting-model" class="section level4">
+<h4>Fitting Model</h4>
+<p>Firstly, I use month, weekdays and all weather data as predictors</p>
+<pre class="r"><code>full_model = lm(total_crime ~ month + day_of_week + mean_tmin + mean_tmax + mean_prcp + mean_snow, data = crime_weather)
+summary(full_model) %&gt;%
+  broom::tidy() %&gt;%
+  knitr::kable(digits = 2)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">184.26</td>
+<td align="right">4.59</td>
+<td align="right">40.12</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">month2</td>
+<td align="right">-16.48</td>
+<td align="right">4.56</td>
+<td align="right">-3.62</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">month3</td>
+<td align="right">-12.26</td>
+<td align="right">4.54</td>
+<td align="right">-2.70</td>
+<td align="right">0.01</td>
+</tr>
+<tr class="even">
+<td align="left">month4</td>
+<td align="right">-8.69</td>
+<td align="right">4.95</td>
+<td align="right">-1.76</td>
+<td align="right">0.08</td>
+</tr>
+<tr class="odd">
+<td align="left">month5</td>
+<td align="right">-3.77</td>
+<td align="right">5.33</td>
+<td align="right">-0.71</td>
+<td align="right">0.48</td>
+</tr>
+<tr class="even">
+<td align="left">month6</td>
+<td align="right">-6.89</td>
+<td align="right">6.13</td>
+<td align="right">-1.12</td>
+<td align="right">0.26</td>
+</tr>
+<tr class="odd">
+<td align="left">month7</td>
+<td align="right">-8.76</td>
+<td align="right">6.66</td>
+<td align="right">-1.31</td>
+<td align="right">0.19</td>
+</tr>
+<tr class="even">
+<td align="left">month8</td>
+<td align="right">-7.80</td>
+<td align="right">6.59</td>
+<td align="right">-1.18</td>
+<td align="right">0.24</td>
+</tr>
+<tr class="odd">
+<td align="left">month9</td>
+<td align="right">-4.40</td>
+<td align="right">6.11</td>
+<td align="right">-0.72</td>
+<td align="right">0.47</td>
+</tr>
+<tr class="even">
+<td align="left">month10</td>
+<td align="right">0.89</td>
+<td align="right">5.34</td>
+<td align="right">0.17</td>
+<td align="right">0.87</td>
+</tr>
+<tr class="odd">
+<td align="left">month11</td>
+<td align="right">-0.78</td>
+<td align="right">4.71</td>
+<td align="right">-0.17</td>
+<td align="right">0.87</td>
+</tr>
+<tr class="even">
+<td align="left">month12</td>
+<td align="right">14.51</td>
+<td align="right">4.47</td>
+<td align="right">3.24</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekMonday</td>
+<td align="right">-24.58</td>
+<td align="right">3.35</td>
+<td align="right">-7.33</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekSaturday</td>
+<td align="right">-17.01</td>
+<td align="right">3.34</td>
+<td align="right">-5.09</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekSunday</td>
+<td align="right">-25.66</td>
+<td align="right">3.34</td>
+<td align="right">-7.67</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekThursday</td>
+<td align="right">-14.85</td>
+<td align="right">3.36</td>
+<td align="right">-4.43</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekTuesday</td>
+<td align="right">-16.45</td>
+<td align="right">3.36</td>
+<td align="right">-4.90</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekWednesday</td>
+<td align="right">-8.54</td>
+<td align="right">3.36</td>
+<td align="right">-2.54</td>
+<td align="right">0.01</td>
+</tr>
+<tr class="odd">
+<td align="left">mean_tmin</td>
+<td align="right">0.03</td>
+<td align="right">0.42</td>
+<td align="right">0.06</td>
+<td align="right">0.95</td>
+</tr>
+<tr class="even">
+<td align="left">mean_tmax</td>
+<td align="right">0.77</td>
+<td align="right">0.35</td>
+<td align="right">2.18</td>
+<td align="right">0.03</td>
+</tr>
+<tr class="odd">
+<td align="left">mean_prcp</td>
+<td align="right">-0.05</td>
+<td align="right">0.01</td>
+<td align="right">-4.29</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">mean_snow</td>
+<td align="right">-0.08</td>
+<td align="right">0.02</td>
+<td align="right">-3.55</td>
+<td align="right">0.00</td>
+</tr>
+</tbody>
+</table>
+<p>I noticed that both tmax and tmin are not significant, which may be
+attributed to their correlation, so I calculated the VIF.</p>
+<pre class="r"><code>vif(full_model) %&gt;%
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">GVIF</th>
+<th align="right">Df</th>
+<th align="right">GVIF^(1/(2*Df))</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">month</td>
+<td align="right">6.31</td>
+<td align="right">11</td>
+<td align="right">1.09</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_week</td>
+<td align="right">1.05</td>
+<td align="right">6</td>
+<td align="right">1.00</td>
+</tr>
+<tr class="odd">
+<td align="left">mean_tmin</td>
+<td align="right">18.24</td>
+<td align="right">1</td>
+<td align="right">4.27</td>
+</tr>
+<tr class="even">
+<td align="left">mean_tmax</td>
+<td align="right">14.84</td>
+<td align="right">1</td>
+<td align="right">3.85</td>
+</tr>
+<tr class="odd">
+<td align="left">mean_prcp</td>
+<td align="right">1.08</td>
+<td align="right">1</td>
+<td align="right">1.04</td>
+</tr>
+<tr class="even">
+<td align="left">mean_snow</td>
+<td align="right">1.15</td>
+<td align="right">1</td>
+<td align="right">1.07</td>
+</tr>
+</tbody>
+</table>
+<p>It is obvious that the VIF of tmin and tmax is high, so I chose to
+drop tmin. Besides, I found that some months are not significantly
+different from the reference category. So, what if we drop the
+month?</p>
+<p>The second proposed model is total_crime ~ day_of_week + mean_tmax +
+mean_prcp + mean_snow</p>
+<pre class="r"><code>model1 = lm(total_crime ~  day_of_week + mean_tmax + mean_prcp + mean_snow, data = crime_weather)
+summary(model1) %&gt;%
+  broom::tidy() %&gt;%
+  knitr::kable(digits = 2)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">183.55</td>
+<td align="right">3.04</td>
+<td align="right">60.31</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekMonday</td>
+<td align="right">-24.79</td>
+<td align="right">3.47</td>
+<td align="right">-7.14</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekSaturday</td>
+<td align="right">-17.05</td>
+<td align="right">3.46</td>
+<td align="right">-4.93</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekSunday</td>
+<td align="right">-25.61</td>
+<td align="right">3.47</td>
+<td align="right">-7.39</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekThursday</td>
+<td align="right">-14.98</td>
+<td align="right">3.48</td>
+<td align="right">-4.31</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekTuesday</td>
+<td align="right">-16.60</td>
+<td align="right">3.47</td>
+<td align="right">-4.78</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekWednesday</td>
+<td align="right">-8.71</td>
+<td align="right">3.48</td>
+<td align="right">-2.50</td>
+<td align="right">0.01</td>
+</tr>
+<tr class="even">
+<td align="left">mean_tmax</td>
+<td align="right">0.59</td>
+<td align="right">0.10</td>
+<td align="right">6.00</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">mean_prcp</td>
+<td align="right">-0.05</td>
+<td align="right">0.01</td>
+<td align="right">-4.40</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">mean_snow</td>
+<td align="right">-0.09</td>
+<td align="right">0.02</td>
+<td align="right">-3.89</td>
+<td align="right">0.00</td>
+</tr>
+</tbody>
+</table>
+<p>This time, the tmax becomes significant. And it has a positive effect
+on crime rate, which validate our assumption. Besides, all other
+variables are significant.</p>
+<p>But we noticed that some months are significantly different from
+reference catergory, so we want to compare model1 and model with
+month.</p>
+<pre class="r"><code>model2 = lm(total_crime ~ month +day_of_week +  mean_tmax + mean_prcp + mean_snow, data = crime_weather)
+summary(model2) %&gt;%
+  broom::tidy() %&gt;%
+  knitr::kable(digits = 2)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">184.14</td>
+<td align="right">4.14</td>
+<td align="right">44.47</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">month2</td>
+<td align="right">-16.51</td>
+<td align="right">4.53</td>
+<td align="right">-3.64</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">month3</td>
+<td align="right">-12.28</td>
+<td align="right">4.52</td>
+<td align="right">-2.72</td>
+<td align="right">0.01</td>
+</tr>
+<tr class="even">
+<td align="left">month4</td>
+<td align="right">-8.68</td>
+<td align="right">4.94</td>
+<td align="right">-1.76</td>
+<td align="right">0.08</td>
+</tr>
+<tr class="odd">
+<td align="left">month5</td>
+<td align="right">-3.71</td>
+<td align="right">5.24</td>
+<td align="right">-0.71</td>
+<td align="right">0.48</td>
+</tr>
+<tr class="even">
+<td align="left">month6</td>
+<td align="right">-6.80</td>
+<td align="right">5.94</td>
+<td align="right">-1.14</td>
+<td align="right">0.25</td>
+</tr>
+<tr class="odd">
+<td align="left">month7</td>
+<td align="right">-8.62</td>
+<td align="right">6.30</td>
+<td align="right">-1.37</td>
+<td align="right">0.17</td>
+</tr>
+<tr class="even">
+<td align="left">month8</td>
+<td align="right">-7.66</td>
+<td align="right">6.18</td>
+<td align="right">-1.24</td>
+<td align="right">0.22</td>
+</tr>
+<tr class="odd">
+<td align="left">month9</td>
+<td align="right">-4.28</td>
+<td align="right">5.82</td>
+<td align="right">-0.74</td>
+<td align="right">0.46</td>
+</tr>
+<tr class="even">
+<td align="left">month10</td>
+<td align="right">0.95</td>
+<td align="right">5.23</td>
+<td align="right">0.18</td>
+<td align="right">0.86</td>
+</tr>
+<tr class="odd">
+<td align="left">month11</td>
+<td align="right">-0.77</td>
+<td align="right">4.70</td>
+<td align="right">-0.16</td>
+<td align="right">0.87</td>
+</tr>
+<tr class="even">
+<td align="left">month12</td>
+<td align="right">14.51</td>
+<td align="right">4.47</td>
+<td align="right">3.25</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekMonday</td>
+<td align="right">-24.59</td>
+<td align="right">3.35</td>
+<td align="right">-7.35</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekSaturday</td>
+<td align="right">-17.01</td>
+<td align="right">3.34</td>
+<td align="right">-5.09</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekSunday</td>
+<td align="right">-25.66</td>
+<td align="right">3.34</td>
+<td align="right">-7.68</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekThursday</td>
+<td align="right">-14.85</td>
+<td align="right">3.35</td>
+<td align="right">-4.43</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekTuesday</td>
+<td align="right">-16.43</td>
+<td align="right">3.35</td>
+<td align="right">-4.91</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekWednesday</td>
+<td align="right">-8.54</td>
+<td align="right">3.36</td>
+<td align="right">-2.54</td>
+<td align="right">0.01</td>
+</tr>
+<tr class="odd">
+<td align="left">mean_tmax</td>
+<td align="right">0.79</td>
+<td align="right">0.19</td>
+<td align="right">4.15</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">mean_prcp</td>
+<td align="right">-0.05</td>
+<td align="right">0.01</td>
+<td align="right">-4.37</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">mean_snow</td>
+<td align="right">-0.08</td>
+<td align="right">0.02</td>
+<td align="right">-3.57</td>
+<td align="right">0.00</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>anova(model1, model2)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: total_crime ~ day_of_week + mean_tmax + mean_prcp + mean_snow
+## Model 2: total_crime ~ month + day_of_week + mean_tmax + mean_prcp + mean_snow
+##   Res.Df    RSS Df Sum of Sq    F  Pr(&gt;F)    
+## 1    721 453378                              
+## 2    710 414710 11     38669 6.02 1.9e-09 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>We use ANOVA to compare the two models. Since p-value is smaller than
+0.05, we should include month in our model.</p>
+<p>We also want to try to include a interaction term in our model.</p>
+<pre class="r"><code>model3 &lt;- lm(total_crime ~  month +day_of_week +  mean_tmax + mean_prcp + mean_snow + mean_tmax*day_of_week, data = crime_weather )
+summary(model3) %&gt;%
+    broom::tidy() %&gt;%
+  knitr::kable(digits = 2)</code></pre>
+<table>
+<colgroup>
+<col width="45%" />
+<col width="13%" />
+<col width="14%" />
+<col width="14%" />
+<col width="11%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">191.12</td>
+<td align="right">5.59</td>
+<td align="right">34.20</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">month2</td>
+<td align="right">-16.88</td>
+<td align="right">4.53</td>
+<td align="right">-3.73</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">month3</td>
+<td align="right">-12.64</td>
+<td align="right">4.52</td>
+<td align="right">-2.80</td>
+<td align="right">0.01</td>
+</tr>
+<tr class="even">
+<td align="left">month4</td>
+<td align="right">-9.17</td>
+<td align="right">4.94</td>
+<td align="right">-1.86</td>
+<td align="right">0.06</td>
+</tr>
+<tr class="odd">
+<td align="left">month5</td>
+<td align="right">-4.30</td>
+<td align="right">5.24</td>
+<td align="right">-0.82</td>
+<td align="right">0.41</td>
+</tr>
+<tr class="even">
+<td align="left">month6</td>
+<td align="right">-7.55</td>
+<td align="right">5.95</td>
+<td align="right">-1.27</td>
+<td align="right">0.20</td>
+</tr>
+<tr class="odd">
+<td align="left">month7</td>
+<td align="right">-9.48</td>
+<td align="right">6.30</td>
+<td align="right">-1.50</td>
+<td align="right">0.13</td>
+</tr>
+<tr class="even">
+<td align="left">month8</td>
+<td align="right">-8.45</td>
+<td align="right">6.19</td>
+<td align="right">-1.37</td>
+<td align="right">0.17</td>
+</tr>
+<tr class="odd">
+<td align="left">month9</td>
+<td align="right">-4.96</td>
+<td align="right">5.83</td>
+<td align="right">-0.85</td>
+<td align="right">0.39</td>
+</tr>
+<tr class="even">
+<td align="left">month10</td>
+<td align="right">0.36</td>
+<td align="right">5.23</td>
+<td align="right">0.07</td>
+<td align="right">0.94</td>
+</tr>
+<tr class="odd">
+<td align="left">month11</td>
+<td align="right">-1.06</td>
+<td align="right">4.70</td>
+<td align="right">-0.23</td>
+<td align="right">0.82</td>
+</tr>
+<tr class="even">
+<td align="left">month12</td>
+<td align="right">14.02</td>
+<td align="right">4.47</td>
+<td align="right">3.14</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekMonday</td>
+<td align="right">-36.77</td>
+<td align="right">6.94</td>
+<td align="right">-5.30</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekSaturday</td>
+<td align="right">-25.17</td>
+<td align="right">6.57</td>
+<td align="right">-3.83</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekSunday</td>
+<td align="right">-29.43</td>
+<td align="right">6.75</td>
+<td align="right">-4.36</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekThursday</td>
+<td align="right">-27.26</td>
+<td align="right">6.97</td>
+<td align="right">-3.91</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekTuesday</td>
+<td align="right">-27.93</td>
+<td align="right">6.95</td>
+<td align="right">-4.02</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekWednesday</td>
+<td align="right">-9.17</td>
+<td align="right">7.14</td>
+<td align="right">-1.28</td>
+<td align="right">0.20</td>
+</tr>
+<tr class="odd">
+<td align="left">mean_tmax</td>
+<td align="right">0.42</td>
+<td align="right">0.28</td>
+<td align="right">1.50</td>
+<td align="right">0.13</td>
+</tr>
+<tr class="even">
+<td align="left">mean_prcp</td>
+<td align="right">-0.05</td>
+<td align="right">0.01</td>
+<td align="right">-4.22</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">mean_snow</td>
+<td align="right">-0.08</td>
+<td align="right">0.02</td>
+<td align="right">-3.59</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekMonday:mean_tmax</td>
+<td align="right">0.69</td>
+<td align="right">0.34</td>
+<td align="right">2.01</td>
+<td align="right">0.05</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekSaturday:mean_tmax</td>
+<td align="right">0.47</td>
+<td align="right">0.33</td>
+<td align="right">1.43</td>
+<td align="right">0.15</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekSunday:mean_tmax</td>
+<td align="right">0.21</td>
+<td align="right">0.33</td>
+<td align="right">0.64</td>
+<td align="right">0.52</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekThursday:mean_tmax</td>
+<td align="right">0.69</td>
+<td align="right">0.34</td>
+<td align="right">2.04</td>
+<td align="right">0.04</td>
+</tr>
+<tr class="even">
+<td align="left">day_of_weekTuesday:mean_tmax</td>
+<td align="right">0.65</td>
+<td align="right">0.34</td>
+<td align="right">1.89</td>
+<td align="right">0.06</td>
+</tr>
+<tr class="odd">
+<td align="left">day_of_weekWednesday:mean_tmax</td>
+<td align="right">0.06</td>
+<td align="right">0.34</td>
+<td align="right">0.17</td>
+<td align="right">0.86</td>
+</tr>
+</tbody>
+</table>
+<p>In model 3 , we assume that there is an interaction between
+temperature and day of week. However, some of the interaction term are
+not significant.</p>
+<p>We also want to know whether to include months and weekdays in our
+model.</p>
+<pre class="r"><code>model4 &lt;- lm(total_crime ~ mean_tmax + mean_prcp + mean_snow, data = crime_weather)
+summary(model4) %&gt;%
+  broom::tidy() %&gt;%
+  knitr::kable(digits = 2)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">168.17</td>
+<td align="right">2.15</td>
+<td align="right">78.15</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">mean_tmax</td>
+<td align="right">0.59</td>
+<td align="right">0.10</td>
+<td align="right">5.76</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">mean_prcp</td>
+<td align="right">-0.05</td>
+<td align="right">0.01</td>
+<td align="right">-4.31</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">mean_snow</td>
+<td align="right">-0.09</td>
+<td align="right">0.02</td>
+<td align="right">-4.05</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="cross-validation" class="section level4">
+<h4>Cross Validation</h4>
+<p>We want to decide which model is the best to predict the daily number
+of crime cases in New York. We use cross validation to compare the
+models.</p>
+<pre class="r"><code>cv_df &lt;- 
+  crossv_mc(crime_weather, 100) %&gt;%  
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble)
+  )</code></pre>
+<pre class="r"><code>cv_df &lt;- 
+  cv_df %&gt;% 
+  mutate(
+    model1 = map( train, ~lm(total_crime ~ month + day_of_week + mean_tmax + mean_prcp + mean_snow, data = crime_weather)),
+    model2 =  map( train, ~lm(total_crime ~ day_of_week +  mean_tmax + mean_prcp+mean_snow, data = crime_weather)),
+    model3 =  map( train, ~lm(total_crime ~ month +day_of_week +  mean_tmax + mean_prcp + mean_snow +mean_tmax*day_of_week, data = crime_weather)),
+    model4 = map( train, ~lm( total_crime ~ mean_tmax + mean_prcp + mean_snow, data = crime_weather))) %&gt;%
+   mutate(
+    rmse_model1 = map2_dbl( model1,  test, ~rmse(model = .x, data =.y)),
+    rmse_model2 = map2_dbl( model2,  test, ~rmse(model = .x, data =.y)),
+    rmse_model3 = map2_dbl( model3,  test, ~rmse(model = .x, data =.y)),
+    rmse_model4 = map2_dbl( model4, test, ~rmse(model = .x, data =.y))
+  ) </code></pre>
+<pre class="r"><code>cv_df %&gt;% 
+  select(starts_with(&quot;rmse&quot;)) %&gt;% 
+  pivot_longer(
+    everything(),
+    names_to = &quot;model&quot;, 
+    values_to = &quot;rmse&quot;,
+    names_prefix = &quot;rmse_&quot;) %&gt;% 
+  mutate(model = fct_inorder(model)) %&gt;% 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-26-1.png" width="768" /></p>
+<pre class="r"><code>cv_df %&gt;% 
+  summarize(
+    rmse_1 = mean(rmse_model1),
+    rmse_2 = mean(rmse_model2),
+    rmse_3 = mean(rmse_model3),
+    rmse_4 = mean(rmse_model4)
+  ) %&gt;%
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">rmse_1</th>
+<th align="right">rmse_2</th>
+<th align="right">rmse_3</th>
+<th align="right">rmse_4</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">24.1</td>
+<td align="right">25.2</td>
+<td align="right">24</td>
+<td align="right">26.6</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="model-diagnostics" class="section level4">
+<h4>Model Diagnostics</h4>
+<pre class="r"><code>par(mfrow = c(2,2))
+plot(model3)</code></pre>
+<p><img src="Report_files/figure-html/unnamed-chunk-27-1.png" width="768" /></p>
+<p>Model3’s root means square error is the smallest in the four models,
+which may indicates it is the best model in the four models.</p>
+<p>We then did a model diagnostic to check if the model assumptions.
+Although there are some outliers as shown in the plots, the Q-Q plot,
+residuals VS fitted plot and Scale-Location plot indicates the residuals
+are normally distributed and variance of residuals is constant.
+Therefore, model3 could be useful for predicting the total number of
+crime cases each day in New York, which means month, day of week,
+temperature, precipitation , snow depth and a interaction term between
+day of week and temperature are all useful predictors if we want to
+predict the number of crime cases on a specific day in New York.</p>
 </div>
 </div>
 <div id="discussion" class="section level2">
