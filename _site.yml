@@ -14,7 +14,7 @@ navbar:
     - text: "Interactive Map"
       href: map.html
     - text: "Shiny"
-      href: https://zz2780.shinyapps.io/shiny_dashboard/?_ga=2.11089334.361312301.1670526991-1574925733.1669738083
+      href: https://zz2780.shinyapps.io/shiny_dashboard/
     - icon: fa-github fa-lg
       href: https://github.com/zz2780/crimeweather_final_project.github.io
     - icon: fa-envelope fa-lg
