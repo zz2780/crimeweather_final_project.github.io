@@ -144,6 +144,13 @@ pop_zip = pop_zip %>%
   filter(county %in% c("New York", "Kings", "Queens", "Bronx", "Richmond"))
 ```
 
+The dataset `pop_zip` lacks population data in zip code region 10065, so we manually add it in ([data source here](https://censusreporter.org/profiles/86000US10065-10065/)).
+
+```{r}
+pop_zip[nrow(pop_zip) + 1,] = list("10065","	
+New York City", "New York", 30339)
+```
+
 We then convert zip code to modified zip code, and get the population in each modified zip code region.
 
 ```{r}
