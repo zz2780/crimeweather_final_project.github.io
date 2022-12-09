@@ -75,11 +75,10 @@ renderPlotly({
     hour_of_day %in% input$hour_of_day_choice[1]:input$hour_of_day_choice[2],
     day_of_week == input$day_of_week_choice,
     season==input$season_choice) %>%
-  group_by(borough, hour_of_day, day_of_week,season)%>%
   count(offense, name = "offense_total") %>%
   arrange(desc(offense_total)) %>%
   plot_ly(
-    x = ~offense_total, y = ~reorder(offense, offense_total), type = "bar", color = ~ offense, colors = "viridis")%>%
+    x = ~offense_total, y = ~reorder(offense, offense_total), type = "bar")%>%
     layout( xaxis = list(title = ""),
          yaxis = list(title = ""))
 })
