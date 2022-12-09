@@ -76,7 +76,6 @@ renderPlotly({
     day_of_week == input$day_of_week_choice,
     season==input$season_choice) %>%
   count(offense, name = "offense_total") %>%
-  arrange(desc(offense_total)) %>%
   plot_ly(
     x = ~offense_total, y = ~reorder(offense, offense_total), type = "bar")%>%
     layout( xaxis = list(title = ""),
