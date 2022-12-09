@@ -81,7 +81,7 @@ crime_zips <- zips[crime_spdf, ]
 
 #redefine crime_df_map to include zipcodes
 crime_df_map = cbind(crime_df_map, over(crime_spdf, crime_zips[,"ZCTA5CE10"]))
-crime_df_map = rename(crime_df_map, zip_code = ZCTA5CE10)
+crime_df_map = rename(crime_df_map, zip = ZCTA5CE10)
 ```
 
 ## Modified zip code
@@ -95,13 +95,37 @@ zcta_conv$MODZCTA <- as.character(zcta_conv$MODZCTA)
 ```
 
 ```{r}
-# Convert zip_code to mod_zip_code
+# Convert zip to mod_zip
 crime_df_map = crime_df_map %>%
-  left_join(rename(zcta_conv, zip_code = ZCTA), by = "zip_code") %>%
-  rename(mod_zip_code = MODZCTA)
+  left_join(rename(zcta_conv, zip = ZCTA), by = "zip") %>%
+  rename(mod_zip = MODZCTA)
 ```
 
+## Number of crimes by modified zip codes
 
+```{r}
+#Obtain number of crimes in each zip region, sorting in descending order
+number_of_crimes = 
+  crime_df_map %>% 
+  group_by(mod_zip) %>% 
+  summarize(number_of_crimes = n()) %>%
+  arrange(desc(number_of_crimes))
+number_of_crimes
+```
 
+## Crime rate by modified zip codes
 
+In order to obtain crime rate, we get population size of each zip code region from [here](https://worldpopulationreview.com/zips/new-york).
 
+```{r}
+pop_zip = read_csv("data/csvData.csv")
+pop_zip$zip <- as.character(pop_zip$zip)
+```
+
+We then convert zip code to modified zip code.
+
+```{r}
+pop_mod_zip = pop_zip %>%
+  left_join(rename(zcta_conv, zip = ZCTA), by = "zip") %>%
+  rename(mod_zip = MODZCTA)
+```
