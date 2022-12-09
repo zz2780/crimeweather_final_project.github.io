@@ -57,19 +57,20 @@ crime_plot
 # Map based on zipcodes
 
 ```{r}
-library(sp) # for analyzing spatial data
-library(sf) # for analyzing spatial data
-library(rgdal) # for importing zips shapefile and transform CRS
-library(leaflet) # for interactive maps
-library(tigris) # geojoin
+library(sp) #for analyzing spatial data
+library(sf) #for analyzing spatial data
+library(rgdal) #for importing zips shapefile and transform CRS
+library(leaflet) #for interactive maps
+library(tigris) #geojoin
+library(htmlwidgets) #save interactive maps
 ```
 
 ## Get the zip codes
 
 ```{r}
 #import zips shapefile and transform CRS 
-zips <- readOGR("data/cb_2015_us_zcta510_500k/cb_2015_us_zcta510_500k.shp")
-zips <- spTransform(zips, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+zips = readOGR("data/cb_2015_us_zcta510_500k/cb_2015_us_zcta510_500k.shp")
+zips = spTransform(zips, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
 ```
 
 ```{r}
@@ -80,7 +81,7 @@ crime_lat_long = select(crime_df_map, longitude, latitude)
 crime_spdf = SpatialPointsDataFrame(coords = crime_lat_long, data = crime_lat_long, proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
 
 #subset only the zipcodes in which points are found
-crime_zips <- zips[crime_spdf, ]
+crime_zips = zips[crime_spdf, ]
 
 #redefine crime_df_map to include zipcodes
 crime_df_map = cbind(crime_df_map, over(crime_spdf, crime_zips[,"ZCTA5CE10"]))
@@ -101,8 +102,8 @@ In order to make meaningful data analysis, we want zip codes represent regions w
 
 ```{r}
 zcta_conv = read_csv("data/ZCTA-to-MODZCTA.csv")
-zcta_conv$ZCTA <- as.character(zcta_conv$ZCTA)
-zcta_conv$MODZCTA <- as.character(zcta_conv$MODZCTA)
+zcta_conv$ZCTA = as.character(zcta_conv$ZCTA)
+zcta_conv$MODZCTA = as.character(zcta_conv$MODZCTA)
 ```
 
 ```{r}
@@ -137,7 +138,7 @@ In order to obtain crime rate, we get population of each zip code region from [h
 
 ```{r}
 pop_zip = read_csv("data/csvData.csv")
-pop_zip$zip <- as.character(pop_zip$zip)
+pop_zip$zip = as.character(pop_zip$zip)
 
 #filter out regions in New York City
 pop_zip = pop_zip %>%
@@ -174,7 +175,7 @@ crime_rate =
 as.tibble(crime_rate)
 ```
 
-## 
+## Interactive map
 
 Read the modzcta shapefile obtained from [here](https://github.com/nychealth/coronavirus-data/tree/master/Geography-resources).
 
@@ -217,13 +218,131 @@ map_interactive = crime_rate_modzcta %>%
   addLegend("bottomright",
             pal = pal,
             values = ~ crime_rate,
-            title = "Crime cases per 100",
+            title = "Crime cases per 100 residents",
             opacity = 0.7)
 saveWidget(map_interactive, "nyc_crime_rate_map.html")
 map_interactive
 ```
 
+# crime_month data preparation
 
+```{r}
+crime_month = crime_df_map %>%
+  group_by(mod_zip, date) %>%
+  summarize(crime_counts = n())
+crime_month$date = cut(crime_month$date, "30 days")
+crime_month =  crime_month %>%
+  group_by(mod_zip, date) %>%
+  summarize(crime_counts = sum(crime_counts)) %>%
+  rename(month_following = date)
+```
 
+```{r}
+crime_month = left_join(crime_month, pop_mod_zip, by = "mod_zip") %>%
+  select(mod_zip, population, month_following, crime_counts)
+crime_month$crime_rate = crime_month$crime_counts / crime_month$population
+crime_month = crime_month %>%
+  select(month_following, mod_zip, population, crime_counts, crime_rate) %>%
+  arrange(month_following)
+crime_month = geo_join(modzcta, crime_month, "modzcta", "mod_zip", how = "inner")
+```
 
+# Shiny
 
+```{r}
+library(shiny)
+```
+
+```{r}
+#define UI
+ui = fluidPage(
+  titlePanel("NYC crime visualization by modified zip code regions"),
+  sidebarLayout(
+    h5("blabla"),
+    sidebarPanel(
+      selectInput("date",
+                  "Select a date (month starting from):",
+                  choices = unique(crime_month$month_following))
+    )
+  ),
+  mainPanel(
+    tabsetPanel(
+      tabPanel("Crime counts", leafletOutput("crime_counts")),
+      tabPanel("Crime rate", leafletOutput("crime_rate"))
+    )
+  )
+)
+
+#define server logic
+server = function(input, output){
+  month_selected = reactive({
+    w = crime_month %>%
+      filter(month_following == input$date)
+    return(w)
+  })
+  output$crime_counts = renderLeaflet({
+    pal = colorBin(palette = "YlGn", 9, domain = crime_month$crime_counts)
+    labels = sprintf(
+      "<strong>%s</strong><br/>%g incidents in the month",
+      month_selected()$mod_zip, month_selected()$crime_counts) %>%
+      lapply(htmltools::HTML)
+    month_selected() %>%
+      st_transform(crs = "+init=epsg:4326") %>%
+      leaflet() %>%
+      addProviderTiles(provider = "CartoDB.Positron") %>%
+      setView(-73.9, 40.7, zoom = 10) %>%
+      addPolygons(label = labels,
+                  stroke = FALSE,
+                  smoothFactor = 0.5,
+                  opacity = 1,
+                  fillOpacity = 0.7,
+                  fillColor = ~ pal(month_selected()$crime_counts),
+                  highlightOptions = highlightOptions(weight = 5,
+                                                      fillOpacity = 1,
+                                                      color = "black",
+                                                      opacity = 1,
+                                                      bringToFront = TRUE)) %>%
+      addLegend("bottomright",
+                pal = pal,
+                values = ~ crime_counts,
+                title = "Crime incident counts",
+                opacity = 0.7)
+  })
+  output$crime_rate = renderLeaflet({
+    pal = colorBin(palette = "OrRd", 9, domain = crime_month$crime_rate)
+    labels = sprintf(
+      "<strong>%s</strong><br/>%g incidents in the month",
+      month_selected()$mod_zip, month_selected()$crime_rate) %>%
+      lapply(htmltools::HTML)
+    month_selected() %>%
+      st_transform(crs = "+init=epsg:4326") %>%
+      leaflet() %>%
+      addProviderTiles(provider = "CartoDB.Positron") %>%
+      setView(-73.9, 40.7, zoom = 10) %>%
+      addPolygons(label = labels,
+                  stroke = FALSE,
+                  smoothFactor = 0.5,
+                  opacity = 1,
+                  fillOpacity = 0.7,
+                  fillColor = ~ pal(month_selected()$crime_rate),
+                  highlightOptions = highlightOptions(weight = 5,
+                                                      fillOpacity = 1,
+                                                      color = "black",
+                                                      opacity = 1,
+                                                      bringToFront = TRUE)) %>%
+      addLegend("bottomright",
+                pal = pal,
+                values = ~ crime_rate,
+                title = "Crime incident rate",
+                opacity = 0.7)
+  })
+}
+```
+
+Finally, run the shiny app!
+
+Bug......
+
+```{r}
+#shinyApp(ui = ui, server = server)
+```
