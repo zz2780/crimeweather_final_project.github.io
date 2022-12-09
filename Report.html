@@ -350,7 +350,7 @@ div.tocify {
   <a href="map.html">Interactive Map</a>
 </li>
 <li>
-  <a href="https://zz2780.shinyapps.io/shiny_dashboard/?_ga=2.29643064.641722041.1670377109-1574925733.1669738083">Shiny</a>
+  <a href="http://zz2780.shinyapps.io/shiny_dashboard_final">Shiny</a>
 </li>
 <li>
   <a href="https://github.com/zz2780/crimeweather_final_project.github.io">
@@ -659,14 +659,16 @@ Friday and Wednesday have relatively higher number of crimes in average.
 When comparing each hour of the day, we can see that during the hour
 from 1AM to 11AM, the number of crimes is lower than the rest of the
 day, with 5AM and 6AM have the lowest number of crimes in average.</p>
-<div id="map" class="section level4">
-<h4>Map</h4>
+<div id="interactive-map" class="section level4">
+<h4>Interactive Map</h4>
+<p>We created an interactive map that shows the distribution of crime
+cases in the five boroughs of New York City.</p>
 </div>
 <div id="shiny" class="section level4">
 <h4>Shiny</h4>
-<p>The Shiny dashboard reports number and distribution of different
-offenses in NYC based on selected borough, hour of the day, days of the
-week, and season of the year.</p>
+<p>The Shiny dashboard reports number of different offenses in NYC based
+on selected borough, hour of the day, days of the week, and season of
+the year.</p>
 <p>After some exploratory analysis, we moved on to statistical
 analysis.</p>
 </div>
@@ -1951,6 +1953,58 @@ predict the number of crime cases on a specific day in New York.</p>
 </div>
 <div id="discussion" class="section level2">
 <h2>Discussion</h2>
+<p>We established 4 models aiming to predict how weather contributes to
+crime occurrence in NYC, and chose a final model with cross validation
+and assumption diagnostics with standard criterions of linear
+regression. Model 3 is our best model because it has the lowest RMSE
+value among all models. Months (excluding October and December), day of
+week (excluding Friday), average precipitation, average snow fall are a
+series of predictors that affect crime occurrence with negative slopes.
+Months (October and December), average maximum temperature, and the
+interaction terms between average maximum temperature and days within a
+week are a series of predictors that affect crime occurrence with
+positive slopes. Since days within a week alone have negative slopes,
+while their interaction between average maximum temperature are having
+positive slopes, a higher temperature may have more to do with higher
+crime occurrence. To illustrate, research articles has confirmed that a
+slight raise in average temperatures will increase violent crime rates
+when other contributing factors are constant (Tiihonen et al., 2017).
+This can be seen in the Month predictors as they are less negative in
+May, June, July, August, and September.</p>
+<p>However, there is a inconsistency in the Month predictors because
+October and December are having positive slopes, while November has a
+slope of -1.06 which is higher than the slopes of May-September. This
+may be caused by other factors that are not included in our datasets,
+such as holidays – our guesses are people may tend to commit more crimes
+during holiday seasons for money, and there are more people out of
+town/visiting neighborhoods that they are not familiar with, which led
+to problems. This may also be a result of data sampling error because
+our dataset only included data from 2016 and 2017. The slopes are very
+likely to be changed when we enlarge our sample.</p>
+<p>The strength of our model is demonstrated by its relatively lower
+RMSE (24) in cross validation, which represent certain accuracy of the
+model in predicting the response comparing to the rest of our
+models.</p>
+<p>Limitations exist in our model. First, as we mentioned above, our
+data were collected from 2016 and 2017, which is not representative of
+the overall crime tendency in NYC. In addition, our model only included
+factors that is weather/temperature relative, and the well-established
+factors affecting crimes – such as poverty and mental health issues, are
+not included or controlled at baseline in our study. Stratification of
+demographical factors is necessary for accuracy. Furthermore, since our
+aim is to predict the occurrence of crimes based on weather, a goodness
+of fit should be evaluated carefully for such prediction. Other
+selection criterions like Mallow’s Cp and adjusted R^2 may be included
+in the model validation process. It is also important that a logical
+selection procedure is strictly followed for statistical model
+selection. Some variables may be log-transformed to become more
+effective, and multicollinearity should be assessed to check for
+confounders. In our model, such selection and assessments were not done.
+These suggest that our model may lack some level of accuracy.</p>
+<p>Tiihonen, J., Halonen, P., Tiihonen, L. et al. The Association of
+Ambient Temperature and Violent Crime. Sci Rep 7, 6543 (2017). <a
+href="https://doi.org/10.1038/s41598-017-06720-z"
+class="uri">https://doi.org/10.1038/s41598-017-06720-z</a></p>
 </div>
 
 
