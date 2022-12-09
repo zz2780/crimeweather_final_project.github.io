@@ -58,14 +58,17 @@ crime_plot
 
 ```{r}
 library(sp) # for analyzing spatial data
+library(sf) # for analyzing spatial data
 library(rgdal) # for importing zips shapefile and transform CRS
+library(leaflet) # for interactive maps
+library(tigris) # geojoin
 ```
 
 ## Get the zip codes
 
 ```{r}
 #import zips shapefile and transform CRS 
-zips <- readOGR("cb_2015_us_zcta510_500k/cb_2015_us_zcta510_500k.shp")
+zips <- readOGR("data/cb_2015_us_zcta510_500k/cb_2015_us_zcta510_500k.shp")
 zips <- spTransform(zips, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
 ```
 
@@ -155,7 +158,7 @@ Add population of each modified zip code region into `number_of_crimes`, and cal
 
 ```{r}
 crime_rate = left_join(number_of_crimes, pop_mod_zip, by = "mod_zip")
-crime_rate$crime_rate = crime_rate$number_of_crimes / crime_rate$population
+crime_rate$crime_rate = crime_rate$number_of_crimes / crime_rate$population * 100
 crime_rate = 
   crime_rate %>%
   select(mod_zip, crime_rate) %>%
@@ -163,4 +166,49 @@ crime_rate =
   arrange(desc(crime_rate))
 as.tibble(crime_rate)
 ```
+
+## 
+
+Read the modzcta shapefile obtained from [here](https://github.com/nychealth/coronavirus-data/tree/master/Geography-resources).
+
+```{r}
+modzcta = st_read("data/MODZCTA_2010/MODZCTA_2010.shp") %>%
+  janitor::clean_names()
+```
+
+Merge crime rate data with modzcta shapefile.
+
+```{r}
+crime_rate_modzcta = geo_join(modzcta, crime_rate, "modzcta", "mod_zip", how = "inner")
+```
+Make interactive map of crime rate.
+
+```{r}
+#label
+labels = sprintf(
+  "<strong>%s</strong><br/>Crime rate is %g&percnt;", crime_rate_modzcta$modzcta, crime_rate_modzcta$crime_rate) %>%
+  lapply(htmltools::HTML)
+
+#color palette
+pal = colorBin(palette = "OrRd", 9, domain = crime_rate_modzcta$crime_rate)
+
+map_interactive = crime_rate_modzcta %>%
+  st_transform(crs = "+init=epsg:4326") %>%
+  leaflet() %>%
+  addProviderTiles(provider = "CartoDB.Positron") %>%
+  addPolygons(label = labels,
+              stroke = FALSE,
+              smoothFactor = 0.5,
+              opacity = 1,
+              fillOpacity = 0.7,
+              fillColor = ~ pal(crime_rate),
+              highlightOptions = highlightOptions(weight = 5,
+                                                  fillOpacity = 1,
+                                                  color = "black",
+                                                  opacity = 1,
+                                                  bringToFront = TRUE))
+map_interactive
+```
+
+
 
