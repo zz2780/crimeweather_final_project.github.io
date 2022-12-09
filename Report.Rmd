@@ -302,10 +302,12 @@ Friday and Wednesday have relatively higher number of crimes in average. When co
 we can see that during the hour from 1AM to 11AM, the number of crimes is lower than the rest of the day, with
 5AM and 6AM have the lowest number of crimes in average. 
 
-#### Map
+#### Interactive Map
+
+We created an interactive map that shows the distribution of crime cases in the five boroughs of New York City. 
 
 #### Shiny
-The Shiny dashboard reports number and distribution of different offenses in NYC based on selected borough, hour of the day, days of the week, and season of the year.
+The Shiny dashboard reports number of different offenses in NYC based on selected borough, hour of the day, days of the week, and season of the year.
 
 
 After some exploratory analysis, we moved on to statistical analysis.
