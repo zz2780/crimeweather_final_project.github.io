@@ -20,6 +20,11 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r}
+library(readxl)
+library(lubridate)
+```
+
 ```{r, message=FALSE, warning=FALSE}
 crime_df = read_csv("data/crime_df.csv")
 head(crime_df)
@@ -43,4 +48,46 @@ crime_plot =
       zoom = 9,
       center = list(lon = -73.9, lat = 40.7)))
 crime_plot
+```
+
+# Map based on zipcodes
+
+```{r}
+library(sp) # for analyzing spatial data
+library(rgdal) # for importing zips shapefile and transform CRS
+```
+
+```{r}
+#import zips shapefile and transform CRS 
+zips <- readOGR("cb_2015_us_zcta510_500k/cb_2015_us_zcta510_500k.shp")
+zips <- spTransform(zips, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+```
+
+```{r}
+#define crime_df_map for our map
+crime_df_map = drop_na(crime_df, latitude)
+
+#extract only lon and lat
+crime_lat_long = select(crime_df_map, longitude, latitude)
+
+#transform coordinates into a SpatialPointsDataFrame
+crime_spdf = SpatialPointsDataFrame(coords = crime_lat_long, data = crime_lat_long, proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+
+#subset only the zipcodes in which points are found
+crime_zips <- zips[crime_spdf, ]
+
+#redefine crime_df_map to include zipcodes
+crime_df_map = cbind(crime_df_map, over(crime_spdf, crime_zips[,"ZCTA5CE10"]))
+crime_df_map = rename(crime_df_map, zip_code = ZCTA5CE10)
+```
+
+```{r}
+#Obtain number of crimes in each zip region, sorting in descending order
+number_of_crimes = 
+  crime_df_map %>% 
+  group_by(zip_code) %>% 
+  summarize(number_of_crimes = n()) %>%
+  arrange(desc(number_of_crimes))
+number_of_crimes
+```
 ```
