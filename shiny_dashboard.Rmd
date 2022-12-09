@@ -79,7 +79,7 @@ renderPlotly({
   count(offense, name = "offense_total") %>%
   arrange(desc(offense_total)) %>%
   plot_ly(
-    x = ~offense_total, y = ~reorder(offense, offense_total), type = "bar", color = ~ offense, colors = "viridis")%>%
+    x = ~offense_total, y = ~reorder(offense, offense_total), type = "bar")%>%
     layout( xaxis = list(title = ""),
          yaxis = list(title = ""))
 })
