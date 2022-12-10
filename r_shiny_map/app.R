@@ -8,7 +8,7 @@ crime_month = readRDS("crime_month.RDS")
 
 #define UI
 ui = fluidPage(
-  titlePanel("NYC crime visualization by 28 days interval and modified zip code regions"),
+  titlePanel("NYC crime visualization by 4 weeks interval and modified zip code regions"),
   sidebarLayout(
     sidebarPanel(
       h5("Data metrics are aggregated by 4 weeks and categorized by the first day in the 4 weeks interval. Data metrics are grouped into modified zip code regions instead of standard zip code regions to account for the discrepant population size in different standard zip code regions. Crime counts for a modified zip code region is the aggregated number of crime incidents occurred in the modified zip code region during the 4 weeks period starting from the specified date. Crime rate is the corresponding crime counts divided by the population size in the corresponding modified zip code region."),
@@ -37,7 +37,7 @@ server <- function(input, output){
   output$crime_counts <- renderLeaflet({
     pal <- colorBin(palette = "YlGn", 9, domain = crime_month$crime_counts)
     labels = sprintf(
-      "<strong>%s</strong><br/>%g incidents in the month",
+      "<strong>%s</strong><br/>%g incidents during the 4 weeks period",
       month_selected()$modzcta, month_selected()$crime_counts) %>%
       lapply(htmltools::HTML)
     month_selected() %>%
@@ -63,10 +63,10 @@ server <- function(input, output){
                 opacity = 0.7)
   })
   output$crime_rate <- renderLeaflet({
-    pal <- colorBin(palette = "OrRd", 9, domain = crime_month$crime_rate)
+    pal <- colorBin(palette = "OrRd", 9, domain = crime_month$crime_rate * 10000)
     labels = sprintf(
-      "<strong>%s</strong><br/>%g incidents in the month",
-      month_selected()$modzcta, month_selected()$crime_rate) %>%
+      "<strong>%s</strong><br/>%g incidents per 10 thousand residents<br/>during the 4 weeks period",
+      month_selected()$modzcta, month_selected()$crime_rate * 10000) %>%
       lapply(htmltools::HTML)
     month_selected() %>%
       st_transform(crs = "+init=epsg:4326") %>%
@@ -78,7 +78,7 @@ server <- function(input, output){
                   smoothFactor = 0.5,
                   opacity = 1,
                   fillOpacity = 0.7,
-                  fillColor = ~ pal(month_selected()$crime_rate),
+                  fillColor = ~ pal(month_selected()$crime_rate * 10000),
                   highlightOptions = highlightOptions(weight = 5,
                                                       fillOpacity = 1,
                                                       color = "black",
@@ -87,7 +87,7 @@ server <- function(input, output){
       addLegend("bottomright",
                 pal = pal,
                 values = ~ crime_rate,
-                title = "Crime incident rate",
+                title = "Crime incident rate<br/>(incidents per 10 thousand residents)",
                 opacity = 0.7)
   })
 }

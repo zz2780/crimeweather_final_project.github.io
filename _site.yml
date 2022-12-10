@@ -11,9 +11,13 @@ navbar:
       href: Modeling.html
     - text: "Report"
       href: Report.html
-    - text: "Interactive Map"
-      href: map.html
-    - text: "Offenses"
+    - text: "Interaction Maps"
+      menu:
+      - text: "Crime Maps"
+        href: map.html
+      - text: "Crime Map shiny"
+        href: https://liyc5215.shinyapps.io/r_shiny_map/
+    - text: "Offenses Shiny"
       href:  https://zz2780.shinyapps.io/final_shiny/
     - icon: fa-github fa-lg
       href: https://github.com/zz2780/crimeweather_final_project.github.io

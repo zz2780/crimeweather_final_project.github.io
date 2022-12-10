@@ -7,8 +7,6 @@ output:
     theme: journal
 ---
 
-
-
 # Introduction
 
 <center>
@@ -66,7 +64,13 @@ and a interaction term between temperature as our predictors.
 
 # Website Overview Video
 
+<center><div class="container_video">
+<iframe width="680" height="450" src="https://www.youtube.com/embed/WnEGx3dkGQ0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div></center>
 
+
+<center>
+![](https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg){width=150%}
 
 # Discussion
 
