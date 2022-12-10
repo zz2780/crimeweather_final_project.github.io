@@ -203,7 +203,7 @@ crime_rate =
 ```{r}
 #label
 labels = sprintf(
-  "<strong>%s</strong><br/>Crime rate is %g&percnt; during the period from 2016-01-01 to 2017-12-31.", crime_rate$mod_zip, crime_rate$crime_rate) %>%
+  "<strong>%s</strong><br/>Crime rate is %g&percnt;<br/>during the period from 2016-01-01 to 2017-12-31.", crime_rate$mod_zip, crime_rate$crime_rate) %>%
   lapply(htmltools::HTML)
 
 #color palette
@@ -227,7 +227,7 @@ map_interactive = crime_rate %>%
   addLegend("bottomright",
             pal = pal,
             values = ~ crime_rate,
-            title = "Crime cases per 100 residents during the period from 2016-01-01 to 2017-12-31",
+            title = "Crime cases per 100 residents<br/>during the period from<br/>2016-01-01 to 2017-12-31",
             opacity = 0.7) %>%
   addTiles("Interactive map of crime rate")
 #saveWidget(map_interactive, "nyc_crime_rate_map.html")
