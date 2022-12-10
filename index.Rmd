@@ -64,7 +64,9 @@ and a interaction term between temperature as our predictors.
 
 # Website Overview Video
 
-<iframe width="840" height="472.5" src="https://www.youtube.com/watch?v=WnEGx3dkGQ0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<center><div class="container_video">
+<iframe width="850" height="580" src="https://www.youtube.com/embed/WnEGx3dkGQ0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div></center>
 
 
 # Discussion

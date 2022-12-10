@@ -11,9 +11,9 @@ navbar:
       href: Modeling.html
     - text: "Report"
       href: Report.html
-    - text: "Interaction Map"
+    - text: "Interaction Maps"
       menu:
-      - text: "Crime Map"
+      - text: "Crime Maps"
         href: map.html
       - text: "Crime Map shiny"
         href: https://liyc5215.shinyapps.io/r_shiny_map/
