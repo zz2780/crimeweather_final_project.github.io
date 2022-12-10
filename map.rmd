@@ -249,8 +249,8 @@ crime_month =  crime_month %>%
   group_by(mod_zip, date) %>%
   summarize(crime_counts = sum(crime_counts)) %>%
   rename(month_following = date) %>%
-  filter(month_following != "2017-12-29") #observations for 2017-12-29 removed for too few data
-
+  filter(month_following != "2017-12-29")  #observations for 2017-12-29 removed for too few data
+  
 #add back mod_zip, crime_rate, and geometry
 crime_month = left_join(crime_month, pop_mod_zip, by = "mod_zip") %>%
   select(mod_zip, population, month_following, crime_counts)
@@ -263,7 +263,7 @@ crime_month$month_following = as.Date(crime_month$month_following, format = "%Y-
 ```
 
 ```{r}
-saveRDS(crime_month, "crime_month.RDS") #save for R Shiny
+saveRDS(crime_month, "r_shiny_map/crime_month.RDS") #save for R Shiny
 ```
 
 ## Shiny app
