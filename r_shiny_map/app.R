@@ -1,8 +1,10 @@
 library(shiny)
 library(tidyverse)
-library(leaflet)
-library(htmlwidgets)
-crime_month<-read_rds("crime_month.RDS")
+library(leaflet) #interactive app
+library(htmlwidgets) #labels on interactive app
+library(sf)#for analyzing spatial data
+
+crime_month = readRDS("crime_month.RDS")
 
 #define UI
 ui = fluidPage(
