@@ -266,15 +266,15 @@ crime_month$month_following = as.Date(crime_month$month_following, format = "%Y-
 #saveRDS(crime_month, "r_shiny_map/crime_month.RDS") #save for R Shiny
 ```
 
-# Shiny app
+## Shiny app
 
-Put a link here.
-Put a link here.
-Put a link here.
-Put a link here.
-Put a link here.
-Put a link here.
-Put a link here.
-Put a link here.
-Put a link here.
+Put a link here.<br/>
+Put a link here.<br/>
+Put a link here.<br/>
+Put a link here.<br/>
+Put a link here.<br/>
+Put a link here.<br/>
+Put a link here.<br/>
+Put a link here.<br/>
+Put a link here.<br/>
 Put a link here.
