@@ -5,9 +5,9 @@ account: zz2780
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 7861314
-bundleId: 6618437
+bundleId: 6618489
 url: https://zz2780.shinyapps.io/r_shiny_map/
-when: 1670638142.81297
-lastSyncTime: 1670638142.81298
+when: 1670639345.67196
+lastSyncTime: 1670639345.67197
 asMultiple: FALSE
 asStatic: FALSE
