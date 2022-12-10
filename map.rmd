@@ -11,14 +11,10 @@ output:
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(plotly)
-library(readxl)
-library(lubridate)
-library(sp) #for analyzing spatial data
 library(sf) #for analyzing spatial data
-library(rgdal) #for importing zips shapefile and transform CRS
+library(rgdal) #note that `rgdal` requires another package `sp`; for importing zips shapefile, transforming CRS, and transforming coordinates into a SpatialPointsDataFrame
 library(leaflet) #for interactive maps
 library(tigris) #geojoin
-library(htmlwidgets) #save interactive maps
 
 knitr::opts_chunk$set(
   fig.width = 10,
