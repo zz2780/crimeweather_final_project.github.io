@@ -3,6 +3,7 @@ library(tidyverse)
 library(leaflet)
 library(htmlwidgets)
 
+
 #define UI
 ui = fluidPage(
   titlePanel("NYC crime visualization by 28 days interval and modified zip code regions"),
