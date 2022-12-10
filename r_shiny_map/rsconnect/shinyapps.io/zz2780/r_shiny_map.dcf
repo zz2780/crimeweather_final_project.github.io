@@ -1,0 +1,13 @@
+name: r_shiny_map
+title: r_shiny_map
+username:
+account: zz2780
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 7861314
+bundleId: 6618420
+url: https://zz2780.shinyapps.io/r_shiny_map/
+when: 1670637666.12261
+lastSyncTime: 1670637666.12262
+asMultiple: FALSE
+asStatic: FALSE

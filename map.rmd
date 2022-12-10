@@ -263,7 +263,7 @@ crime_month$month_following = as.Date(crime_month$month_following, format = "%Y-
 ```
 
 ```{r}
-#saveRDS(crime_month, "r_shiny_map/crime_month.RDS") #save for R Shiny
+saveRDS(crime_month, "r_shiny_map/crime_month.RDS") #save for R Shiny
 ```
 
 ## Shiny app
