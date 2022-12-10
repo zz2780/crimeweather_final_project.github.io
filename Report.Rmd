@@ -1,5 +1,6 @@
 ---
 title: "Report"
+author: "Yucheng Li, Yunyi Jiang, Lydia Zhang, Hongmiao Wang, Mingkai(Charles) Chen"
 output: 
   html_document:
     toc: true
