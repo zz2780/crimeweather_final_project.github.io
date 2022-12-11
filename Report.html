@@ -14,7 +14,7 @@
 
 <title>Report</title>
 
-<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.18/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
@@ -185,8 +185,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -194,16 +194,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -863,15 +856,35 @@ map_interactive = crime_rate %&gt;%
             values = ~ crime_rate,
             title = &quot;Crime cases per 100 residents&lt;br/&gt;during the period from&lt;br/&gt;2016-01-01 to 2017-12-31&quot;,
             opacity = 0.7) %&gt;%
-  addTiles(&quot;Interactive map of crime rate&quot;)
-#saveWidget(map_interactive, &quot;nyc_crime_rate_map.html&quot;)</code></pre>
+  addTiles(&quot;Interactive map of crime rate&quot;)</code></pre>
 <p>To display our results in a more interesting way, we created a shiny
 app which shows crime counts and rate in each modified zip code region
-for every 4-week interval. The link to shiny app can also be accessed
-with the same link above.</p>
-<pre class="r"><code>crime_month = readRDS(&quot;crime_month.RDS&quot;)
+for every 4-week interval. The shiny app can be accessed <a
+href="https://liyc5215.shinyapps.io/r_shiny_map/">here</a>.</p>
+<pre class="r"><code>#data preparation
+##cut `date` into 4 weeks interval
+crime_month = crime_df_map %&gt;% #use crime_df_map instead of crime_df_geo here because crime_df_geo is too large 
+  group_by(mod_zip, date) %&gt;%
+  summarize(crime_counts = n())
+crime_month$date = cut(crime_month$date, &quot;28 days&quot;)
+crime_month =  crime_month %&gt;%
+  group_by(mod_zip, date) %&gt;%
+  summarize(crime_counts = sum(crime_counts)) %&gt;%
+  rename(month_following = date) %&gt;%
+  filter(month_following != &quot;2017-12-29&quot;)  #observations for 2017-12-29 removed for too few data
+  
+##add back mod_zip, crime_rate, and geometry
+crime_month = left_join(crime_month, pop_mod_zip, by = &quot;mod_zip&quot;) %&gt;%
+  select(mod_zip, population, month_following, crime_counts)
+crime_month$crime_rate = crime_month$crime_counts / crime_month$population
+crime_month = crime_month %&gt;%
+  select(month_following, mod_zip, population, crime_counts, crime_rate) %&gt;%
+  arrange(month_following)
+crime_month = geo_join(modzcta, crime_month, &quot;modzcta&quot;, &quot;mod_zip&quot;, how = &quot;inner&quot;)
+crime_month$month_following = as.Date(crime_month$month_following, format = &quot;%Y-%m-%d&quot;)
 
-#define UI
+#shiny app
+##define UI
 ui = fluidPage(
   titlePanel(&quot;NYC crime visualization by 4 weeks interval and modified zip code regions&quot;),
   sidebarLayout(
@@ -892,7 +905,7 @@ ui = fluidPage(
   )
 )
 
-#define server logic
+##define server logic
 server &lt;- function(input, output){
   month_selected &lt;- reactive({
     w &lt;- crime_month %&gt;%
@@ -1161,22 +1174,22 @@ crime_weather_2 %&gt;%
 <tr class="odd">
 <td align="left">not_rainy_or_snowy</td>
 <td align="right">180</td>
-<td align="right">27.7</td>
+<td align="right">27.4</td>
 </tr>
 <tr class="even">
 <td align="left">rainy</td>
 <td align="right">176</td>
-<td align="right">25.4</td>
+<td align="right">25.9</td>
 </tr>
 <tr class="odd">
 <td align="left">rainy_and_snowy</td>
-<td align="right">150</td>
-<td align="right">36.3</td>
+<td align="right">148</td>
+<td align="right">35.7</td>
 </tr>
 <tr class="even">
 <td align="left">snowy</td>
-<td align="right">156</td>
-<td align="right">21.1</td>
+<td align="right">157</td>
+<td align="right">22.5</td>
 </tr>
 </tbody>
 </table>
@@ -1197,8 +1210,8 @@ in different weather.</p>
 <pre class="r"><code>res.aov &lt;- aov(total_crime ~ weather, data = crime_weather_2)
 summary(res.aov) </code></pre>
 <pre><code>##              Df Sum Sq Mean Sq F value  Pr(&gt;F)    
-## weather       3  31642   10547    14.5 3.7e-09 ***
-## Residuals   727 530437     730                    
+## weather       3  31848   10616    14.6 3.2e-09 ***
+## Residuals   727 530231     729                    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>From the result, the p-value is smaller than 0.05, therefore we

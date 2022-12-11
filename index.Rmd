@@ -21,9 +21,12 @@ In fact, the weather in criminology covers many aspects. Apart from the weather 
 ![](https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg){width=150%}
 
 # Dataset
+
 Our project used the public datasets with information on public safety and Climatology Network. The [NYPD Complaint Data](https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-Year-To-Date-/5uac-w243) includes all valid felony, misdemeanor, and violation crimes reported to the New York City Police Department (NYPD) for all complete quarters so far. In our project, we select the records from 2016-01-01 to 2017-12-31 to do analysis and modeling.
 
 The [Global Historical Climatology Network ](https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.ncdc:C00861/html) integrates daily climate observations. Meteorological elements include, but are not limited to, daily maximum and minimum temperature, temperature at the time of observation. We selected weather data collected from 2016-01-01 to 2017-12-31 from three weather stations in New York.
+
+Four additional datasets were used to make interactive maps. [cb_2015_us_zcta510_500k](https://www.census.gov/geographies/mapping-files/2015/geo/carto-boundary-file.html) is a zips shapefile that contains boundary coordinates of zip code regions in the US and was used to convert crime incident coordinates in [NYPD Complaint Data](https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-Year-To-Date-/5uac-w243) into corresponding zip code regions. [csvData](https://worldpopulationreview.com/zips/new-york) contains population size in each zip code region in New York City and was used to calculate crime rate in each zip code region. Further, [ZCTA-to-MODZCTA table](https://github.com/nychealth/coronavirus-data/blob/master/Geography-resources/ZCTA-to-MODZCTA.csv) is a conversion table that converts standard zip codes to modified zip codes so that each zip code region contains similar and large enough population size for data analysis. [MODZCTA_2010](https://github.com/nychealth/coronavirus-data/tree/master/Geography-resources) is a zips shapefile for modified zip codes and contains boundary coordinates of modified zip code regions in the US. It was used to make interactive maps for crime metrics categorized by modified zipcodes.
 
 <center>
 ![](https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg){width=150%}

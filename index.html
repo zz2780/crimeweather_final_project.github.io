@@ -13,7 +13,7 @@
 
 <title>Weather/Time and Crime: what makes us lose control?</title>
 
-<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.18/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
@@ -183,8 +183,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -192,16 +192,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -431,6 +424,24 @@ observations. Meteorological elements include, but are not limited to,
 daily maximum and minimum temperature, temperature at the time of
 observation. We selected weather data collected from 2016-01-01 to
 2017-12-31 from three weather stations in New York.</p>
+<p>Four additional datasets were used to make interactive maps. <a
+href="https://www.census.gov/geographies/mapping-files/2015/geo/carto-boundary-file.html">cb_2015_us_zcta510_500k</a>
+is a zips shapefile that contains boundary coordinates of zip code
+regions in the US and was used to convert crime incident coordinates in
+<a
+href="https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-Year-To-Date-/5uac-w243">NYPD
+Complaint Data</a> into corresponding zip code regions. <a
+href="https://worldpopulationreview.com/zips/new-york">csvData</a>
+contains population size in each zip code region in New York City and
+was used to calculate crime rate in each zip code region. Further, <a
+href="https://github.com/nychealth/coronavirus-data/blob/master/Geography-resources/ZCTA-to-MODZCTA.csv">ZCTA-to-MODZCTA
+table</a> is a conversion table that converts standard zip codes to
+modified zip codes so that each zip code region contains similar and
+large enough population size for data analysis. <a
+href="https://github.com/nychealth/coronavirus-data/tree/master/Geography-resources">MODZCTA_2010</a>
+is a zips shapefile for modified zip codes and contains boundary
+coordinates of modified zip code regions in the US. It was used to make
+interactive maps for crime metrics categorized by modified zipcodes.</p>
 <center>
 <p><img
 src="https://imgsa.baidu.com/forum/w%3D580/sign=47a589cd9e3df8dca63d8f99fd1172bf/94bfbf1c8701a18bb0bc95759f2f07082838fe24.jpg"

@@ -74,7 +74,7 @@ We want to draw a crime rate map to examine the crime rate in each zip code regi
 
 ## Data preparation
 
-We first imported zips shapefile and transform CRS.
+We first imported zips shapefile obtained from [United States Census Bureau](https://www.census.gov/geographies/mapping-files/2015/geo/carto-boundary-file.html) and transformed CRS.
 
 ```{r}
 zips = readOGR("data/cb_2015_us_zcta510_500k/cb_2015_us_zcta510_500k.shp", verbose=FALSE)
@@ -231,7 +231,7 @@ map_interactive = crime_rate %>%
 map_interactive
 ```
 
-# Crime data Shiny map categorized by modified zip codes and 4 weeks interval
+# Crime metrics Shiny map categorized by modified zip codes and 4 weeks interval
 
 ## Data preparation
 
