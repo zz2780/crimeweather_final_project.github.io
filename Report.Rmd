@@ -60,9 +60,9 @@ The initial question we want to investigate is if weather can have an effect on 
 
 ## Data
 
-In Our project, there are two datasets, including NYPD Complaint Data Historic and weather data.  We obtained crime data in New York City from NYC Open Data
-* Crime data of New York City is downloaded from the link below :
-[NYPD Complaint Data Historic](https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Historic/qgea-i56i).
+In Our project, there are two datasets, including NYPD Complaint Data Historic and weather data.
+
+We obtained crime data in New York City from NYC Open Data [NYPD Complaint Data Historic](https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Historic/qgea-i56i).
 
 This dataset contains 780 million felony, misdemeanor, and violation crimes 
 reported to the New York City Police Department (NYPD) from 1910 to 2021. Each 
